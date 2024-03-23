@@ -46,7 +46,7 @@ wandb.init(
 env = DummyVecEnv([make_env])
 
 model = A2C(config['policy'], env, verbose=1) 
-model.learn(total_timesteps=config['total_timesteps'], callback=WandBCallback())
+model.learn(total_timesteps=config['timesteps'], callback=WandBCallback())
 mean_reward, _ = evaluate_policy(model, env, n_eval_emean_rewardpisodes=10)
 wandb.log({"mean_reward": mean_reward})
 model.save(f"a2c_crl_{mean_reward}")
