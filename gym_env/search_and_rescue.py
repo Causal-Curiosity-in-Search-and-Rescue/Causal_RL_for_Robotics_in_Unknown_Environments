@@ -275,6 +275,12 @@ class SearchAndRescueEnv(gym.Env):
         
         return self.state, reward, done, {}
 
+    def normalize_array(self,array):
+        if np.max(array) == np.min(array):
+            return np.zeros(array.shape)
+        else:
+            return (array - np.min(array)) / (np.max(array) - np.min(array))
+
     def render(self, mode=None):
         if mode != None:
             if mode == 'human':
@@ -307,7 +313,8 @@ class SearchAndRescueEnv(gym.Env):
                         axs[1].add_patch(rect)
                         axs[1].set_title('Environment Digital Map')
                 
-                sns.heatmap(self.robot_movement_state, ax=axs[2], cmap='viridis', cbar=True)
+                normalized_movement_state = self.normalize_array(self.robot_movement_state)
+                sns.heatmap(normalized_movement_state, ax=axs[2], cmap='viridis', cbar=True)
                 axs[2].invert_yaxis()  # Invert y-axis to match the other plot's layout
                 axs[2].set_title('Digital Map Visitation Heatmap')
                 
@@ -350,7 +357,8 @@ class SearchAndRescueEnv(gym.Env):
                         axs[1].add_patch(rect)
                         axs[1].set_title('Environment Digital Map')
                         
-                sns.heatmap(self.robot_movement_state, ax=axs[2], cmap='viridis', cbar=True)
+                normalized_movement_state = self.normalize_array(self.robot_movement_state)
+                sns.heatmap(normalized_movement_state, ax=axs[2], cmap='viridis', cbar=True)
                 axs[2].invert_yaxis()  # Invert y-axis to match the other plot's layout
                 axs[2].set_title('Digital Map Visitation Heatmap')
                 

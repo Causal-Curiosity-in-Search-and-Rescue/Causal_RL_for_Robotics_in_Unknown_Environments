@@ -5,6 +5,7 @@ from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.evaluation import evaluate_policy
 import wandb
+import numpy as np 
 import gym 
 import os 
 import logging
@@ -13,8 +14,7 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 logger = logging.getLogger(__name__)
-from utils.helper import read_config
-from callbacks.eval_callback import TrainingAndEvaluationCallback
+from utils.helper import read_config,check_and_create_directory
 import argparse
 
 parser = argparse.ArgumentParser()
@@ -49,5 +49,39 @@ wandb.init(
 
 env = DummyVecEnv([make_env])
 model = A2C(config['policy'], env, verbose=1) 
-callback = TrainingAndEvaluationCallback(model, env, n_eval_episodes=10, eval_freq=1000, log_dir='logs')
-model.learn(total_timesteps=config['timesteps'], callback=callback)
+
+# model.learn(total_timesteps=config['timesteps'], callback=callback) # No Control over model save
+
+# Custom Training Loop
+total_timesteps = config['timesteps'] 
+episode_rewards = []  
+best_mean_reward = -float('inf')  
+best_episode = 0 
+obs = env.reset()  
+episode_count = 0  
+sum_rewards = 0  
+
+for step in range(total_timesteps):
+    action, _ = model.predict(obs)
+    obs, reward, done, info = env.step(action)
+    sum_rewards += reward  
+
+    if done:
+        episode_rewards.append(sum_rewards)  
+        model.save(os.path.join("logs", f'causal_model_{episode_count}.zip'))  
+        if sum_rewards > best_mean_reward:
+            best_mean_reward = sum_rewards  
+            best_episode = episode_count  
+            
+            os.rename(
+                os.path.join("logs", f'causal_model_{episode_count}.zip'),
+                os.path.join("logs", 'best_model.zip')
+            )
+
+        episode_count += 1  
+        sum_rewards = 0  
+        obs = env.reset()  
+
+logging.info(f"Total episodes: {episode_count}")
+logging.info(f"Average reward: {np.mean(episode_rewards)}")
+logging.info(f"Best episode: {best_episode} with reward: {best_mean_reward}")
