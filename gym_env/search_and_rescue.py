@@ -2,13 +2,14 @@ import gym
 from gym import spaces
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 from matplotlib.patches import Rectangle
 import random
 import matplotlib.backends.backend_agg as agg
 import copy
 import os 
 import pickle
-from utils.helper import generate_maze_with_objects,visualisemaze,check_and_create_directory
+from utils.helper import generate_maze_with_objects,visualisemaze,check_and_create_directory,read_config
 import wandb
 import logging
 import math
@@ -21,10 +22,10 @@ class SearchAndRescueEnv(gym.Env):
     def __init__(
             self,
             render_mode:str='human',
-            num_movable_objects:int=0,
-            num_immovable_objects:int=0,
+            num_movable_objects:int=2,
+            num_immovable_objects:int=2,
             num_start_pos:int=1,
-            grid_size:int=20, # Will be a Square
+            grid_size:int=20, 
             max_step:int=400,
             randomness:bool=False,
             save_map:bool=True,
@@ -64,6 +65,17 @@ class SearchAndRescueEnv(gym.Env):
         self.reset()
         self.setup_environment()
     
+    # def visualize_visit_heatmap(self): #@deprecated
+    #     plt.figure(figsize=(10, 8))
+    #     plt.title("Robot Movement Heatmap")
+    #     heatmap = plt.imshow(self.robot_movement_state, cmap='viridis', interpolation='nearest')
+    #     plt.colorbar(heatmap)
+    #     visits_dir = check_and_create_directory(os.path.join(self.log_dir,"visits"))
+    #     image_path = os.path.join(visits_dir,f"{self.episode_count}-robot_movement_heatmap.png")
+    #     plt.savefig(image_path)
+    #     plt.close()  
+    #     wandb.log({"Robot Movement Heatmap": wandb.Image(image_path)})
+    
     def get_robot_position(self)->np.ndarray:
         return np.argwhere(self.state == self.robot_code)[0]
     
@@ -94,7 +106,7 @@ class SearchAndRescueEnv(gym.Env):
         """
         Return the MAP_STATE as the Observation space - this means we are saying the causal movability is determined wth texture and the robot knows about it
         """
-        # self.state = np.copy(self.M_KB)
+        self.digital_map = np.copy(self.M_KB)
         self.state = np.ones(self.grid_size,dtype=np.int32)
         robot_pos = np.argwhere(self.M_KB == self.robot_code)[0]
         goal_pos = np.argwhere(self.M_KB == self.goal_code)[0]
@@ -117,7 +129,7 @@ class SearchAndRescueEnv(gym.Env):
             
     def get_fov_info(self, pos):
         if 0 <= pos[0] < self.grid_size[0] and 0 <= pos[1] < self.grid_size[1]:
-            return self.M_KB[tuple(pos)] 
+            return self.digital_map[tuple(pos)] 
         else:
             return 'OB'
     
@@ -135,6 +147,9 @@ class SearchAndRescueEnv(gym.Env):
     def update_robot_position_in_state(self,old_pos,next_pos):
         self.state[tuple(old_pos)] = self.free_space
         self.state[tuple(next_pos)] = self.robot_code
+        
+        self.digital_map[tuple(old_pos)] = self.free_space
+        self.digital_map[tuple(next_pos)] = self.robot_code
     
     def update_robot_movement_state(self, old_pos, new_pos, cell_code):
         logging.info(f'Updating Robot Movement State : {old_pos} -> {new_pos}, Code : {cell_code}')
@@ -147,7 +162,6 @@ class SearchAndRescueEnv(gym.Env):
     
     def translate_action(self,action,current_pos,next_pos,next_cell_code):
         if next_cell_code not in [self.wall_code, self.non_movable_code, self.room_code,self.movable_code,self.goal_code]: # If Free Space
-            print('In free space translate')
             self.update_robot_position_in_state(current_pos,next_pos)
             self.update_robot_movement_state(current_pos,next_pos,next_cell_code)
             action_info = {
@@ -175,7 +189,8 @@ class SearchAndRescueEnv(gym.Env):
             if new_obj_pos_fov_cell_code not in [self.non_movable_code,self.wall_code,self.room_code,self.movable_code]:
                 self.update_robot_position_in_state(current_pos,next_pos)
                 self.update_robot_movement_state(current_pos,next_pos,next_cell_code)
-                self.state[tuple(new_obj_pos)] = 2
+                self.state[tuple(new_obj_pos)] = self.movable_code
+                self.digital_map[tuple(new_obj_pos)] = self.movable_code
                 action_info = {
                     "object_type":next_cell_code,
                     "movablity":True,
@@ -185,7 +200,7 @@ class SearchAndRescueEnv(gym.Env):
             else:
                 self.update_robot_position_in_state(current_pos,current_pos)
                 self.update_robot_movement_state(current_pos,current_pos,self.non_movable_code) # manually updating visit for this state to be higher so it doesnt visit it
-                self.state[tuple(next_pos)] = next_cell_code
+                self.state[tuple(next_pos)] = next_cell_code # updates observation
                 self.state[tuple(new_obj_pos)] = new_obj_pos_fov_cell_code
                 action_info = {
                     "object_type":next_cell_code,
@@ -221,6 +236,7 @@ class SearchAndRescueEnv(gym.Env):
         
         if next_cell_code == self.goal_code: # reward for reaching goal higher
             reward += 10
+            logging.info(f"[GOAL] Goal Reached @ {self.episode_count}")
             done = True
 
         # goal_pos = self.get_goal_position()
@@ -234,7 +250,7 @@ class SearchAndRescueEnv(gym.Env):
         
         return reward,done
     
-    def log_interactions(self,next_cell_code):
+    def log_interactions(self,next_cell_code): # will log interactions per episode
         if next_cell_code == self.non_movable_code:
             wandb.log({"immovable_interactions":self.cumulative_immovable_interactions})
         elif next_cell_code == self.movable_code:
@@ -250,11 +266,12 @@ class SearchAndRescueEnv(gym.Env):
         self.translate_action(action,self.robot_pos,next_pos,cell_code)
         self.cumulative_reward += reward        
         if done:
+            self.log_interactions(cell_code)
             self.episode_count += 1
+            wandb.log({"episode":self.episode_count,"cummulative_reward":self.cumulative_reward})
+            # self.visualize_visit_heatmap() # Deprecated 
         
-        wandb.log({"episode":self.episode_count,"cummulative_reward":self.cumulative_reward})
-        wandb.log({f"episode-{self.episode_count}":self.current_step,"reward":reward})
-        self.log_interactions(cell_code)
+        wandb.log({f"step":self.current_step,"reward":reward})
         
         return self.state, reward, done, {}
 
@@ -272,15 +289,27 @@ class SearchAndRescueEnv(gym.Env):
                         ax.add_patch(rect)
                 plt.show()
             elif mode == 'rgb_array':
-                fig, ax = plt.subplots()
-                ax.set_xlim(0, self.grid_size[0])
-                ax.set_ylim(0, self.grid_size[1])
-                plt.grid()
+                fig, axs = plt.subplots(1,3,figsize=(40,10))
+                for ax in axs:
+                    ax.set_xlim(0, self.grid_size[0])
+                    ax.set_ylim(0, self.grid_size[1])
+                    ax.grid(True)
                 for r in range(self.grid_size[0]):
                     for c in range(self.grid_size[1]):
                         color = self.colors[self.state[r, c]]
                         rect = Rectangle((c, (self.grid_size[0]-1)-r), 1, 1, color=color)
-                        ax.add_patch(rect)
+                        axs[0].add_patch(rect)
+                        axs[0].set_title('Robot Observations Update')
+                for r in range(self.grid_size[0]):
+                    for c in range(self.grid_size[1]):
+                        color = self.colors[self.digital_map[r, c]]
+                        rect = Rectangle((c, (self.grid_size[0]-1)-r), 1, 1, color=color)
+                        axs[1].add_patch(rect)
+                        axs[1].set_title('Environment Digital Map')
+                
+                sns.heatmap(self.robot_movement_state, ax=axs[2], cmap='viridis', cbar=True)
+                axs[2].invert_yaxis()  # Invert y-axis to match the other plot's layout
+                axs[2].set_title('Digital Map Visitation Heatmap')
                 
                 # Convert the Matplotlib figure to an RGB array
                 canvas = agg.FigureCanvasAgg(fig)
@@ -303,15 +332,27 @@ class SearchAndRescueEnv(gym.Env):
                         ax.add_patch(rect)
                 plt.show()
             elif self.render_mode == 'rgb_array':
-                fig, ax = plt.subplots()
-                ax.set_xlim(0, self.grid_size[0])
-                ax.set_ylim(0, self.grid_size[1])
-                plt.grid()
+                fig, axs = plt.subplots(1,3,figsize=(40,10))
+                for ax in axs:
+                    ax.set_xlim(0, self.grid_size[0])
+                    ax.set_ylim(0, self.grid_size[1])
+                    ax.grid(True)
                 for r in range(self.grid_size[0]):
                     for c in range(self.grid_size[1]):
                         color = self.colors[self.state[r, c]]
                         rect = Rectangle((c, (self.grid_size[0]-1)-r), 1, 1, color=color)
-                        ax.add_patch(rect)
+                        axs[0].add_patch(rect)
+                        axs[0].set_title('Robot Observations Update')
+                for r in range(self.grid_size[0]):
+                    for c in range(self.grid_size[1]):
+                        color = self.colors[self.digital_map[r, c]]
+                        rect = Rectangle((c, (self.grid_size[0]-1)-r), 1, 1, color=color)
+                        axs[1].add_patch(rect)
+                        axs[1].set_title('Environment Digital Map')
+                        
+                sns.heatmap(self.robot_movement_state, ax=axs[2], cmap='viridis', cbar=True)
+                axs[2].invert_yaxis()  # Invert y-axis to match the other plot's layout
+                axs[2].set_title('Digital Map Visitation Heatmap')
                 
                 # Convert the Matplotlib figure to an RGB array
                 canvas = agg.FigureCanvasAgg(fig)
