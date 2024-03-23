@@ -1,0 +1,10 @@
+{
+    "environment":"SearchAndRescueEnv-v0",
+    "algorithm":"A2C",
+    "policy": "MlpPolicy",
+    "total_timesteps": 25000,
+    "wandb":{
+        "project":"[GDP]-RL-Logs",
+        "username":"juliangeralddcruz"
+    }
+}
