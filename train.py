@@ -6,6 +6,7 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.evaluation import evaluate_policy
 import wandb
 import gym 
+import os 
 import logging
 # Configure logging
 logging.basicConfig(level=logging.INFO,
@@ -22,9 +23,12 @@ args = parser.parse_args()
 
 CONFIG = read_config(args.config_path)
 
+def always_record(episode_id):
+    return True  # This will ensure every episode is recorded
+
 def make_env():
     env = gym.make(CONFIG["environment"], render_mode="rgb_array")
-    env = gym.wrappers.RecordVideo(env, f"videos")  # record videos
+    env = gym.wrappers.RecordVideo(env, f"videos",episode_trigger=always_record)  # record videos
     env = gym.wrappers.RecordEpisodeStatistics(env)  # record stats such as returns
     return env
 
@@ -49,6 +53,13 @@ model = A2C(config['policy'], env, verbose=1)
 model.learn(total_timesteps=config['timesteps'], callback=WandBCallback())
 mean_reward, _ = evaluate_policy(model, env, n_eval_episodes=10)
 wandb.log({"mean_reward": mean_reward})
-model.save(f"a2c_crl_{mean_reward}")
+model.save(f"a2c_crl")
+
+# # save the videos to wandb:
+# for video_file in os.listdir(os.path.join(os.getcwd(),"videos")):
+#     if video_file.endswith('.mp4'):
+#         video_filepath = os.path.join(os.getcwd(),"videos",video_file)
+#         episode_id = video_file.split('.')[0].split('-')[-1]
+#         wandb.log({f"video-{episode_id}":wandb.Video(video_filepath)})
 
 wandb.finish()

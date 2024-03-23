@@ -81,6 +81,8 @@ class SearchAndRescueEnv(gym.Env):
             with open(os.path.join(map_log_dir,'maze_plan.pkl'),'wb') as file:
                 pickle.dump(self.MAP_PLAN,file)
             visualisemaze(self.MAP_PLAN,map_log_dir)
+        else:
+            self.state = np.copy(self.M_KB)
         self.cumulative_reward = 0
         self.current_step = 0
         self.cumulative_immovable_interactions = 0
@@ -90,7 +92,7 @@ class SearchAndRescueEnv(gym.Env):
         """
         Return the MAP_STATE as the Observation space - this means we are saying the causal movability is determined wth texture and the robot knows about it
         """
-        self.state =  self.M_KB
+        self.state = np.copy(self.M_KB)
         # Second Experiment 
         """
         Returns the State as the Unknwon KB array - this means the agent without knowledge about movability But self.M_KB will be used to govern the translation of actions
@@ -201,7 +203,7 @@ class SearchAndRescueEnv(gym.Env):
         done = False
         
         if next_cell_code in [self.wall_code,self.room_code]: # penalize for collision with wall and room
-            reward -= 2
+            reward -= 1
             done = True
         
         if self.robot_movement_state[tuple(next_pos)] == 0: # reward for new visits - promotes exploration
