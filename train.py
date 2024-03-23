@@ -41,8 +41,8 @@ config = {
 
 wandb.init(
     config=config,
-    entity="SR_GDP",
-    project="[2D] Using Movability KB",
+    entity=CONFIG['wandb']['entity'],
+    project=CONFIG['wandb']['project'],
     monitor_gym=True,       # automatically upload gym environements' videos
     save_code=True,
 )

@@ -21,16 +21,18 @@ class SearchAndRescueEnv(gym.Env):
     def __init__(
             self,
             render_mode:str='human',
-            num_movable_objects:int=2,
-            num_immovable_objects:int=2,
+            num_movable_objects:int=0,
+            num_immovable_objects:int=0,
             num_start_pos:int=1,
             grid_size:int=20, # Will be a Square
+            max_step:int=400,
             randomness:bool=False,
             save_map:bool=True,
             log_dir:str='logs'
         ):
         super(SearchAndRescueEnv, self).__init__()
         self.use_random = randomness
+        self.max_steps = max_step
         self.log_dir = check_and_create_directory(log_dir)
         self.grid_size = (grid_size,grid_size)
         self.num_m = num_movable_objects
@@ -92,7 +94,12 @@ class SearchAndRescueEnv(gym.Env):
         """
         Return the MAP_STATE as the Observation space - this means we are saying the causal movability is determined wth texture and the robot knows about it
         """
-        self.state = np.copy(self.M_KB)
+        # self.state = np.copy(self.M_KB)
+        self.state = np.ones(self.grid_size,dtype=np.int32)
+        robot_pos = np.argwhere(self.M_KB == self.robot_code)[0]
+        goal_pos = np.argwhere(self.M_KB == self.goal_code)[0]
+        self.state[tuple(robot_pos)] = self.robot_code
+        self.state[tuple(goal_pos)] = self.goal_code
         # Second Experiment 
         """
         Returns the State as the Unknwon KB array - this means the agent without knowledge about movability But self.M_KB will be used to govern the translation of actions
@@ -103,7 +110,6 @@ class SearchAndRescueEnv(gym.Env):
         Returns the State as the Unknown KB Array - this means the causal agent will be updating movability each iteration forming a relation and then assigning the state . Then Self.M_KB becomes our evaluation 
         """
         # self.start  = self.U_KB
-        # Use Digital Mind here 
         self.setup_environment()
         self.robot_pos = self.get_robot_position()
         
@@ -153,6 +159,7 @@ class SearchAndRescueEnv(gym.Env):
         elif next_cell_code in [self.wall_code,self.room_code, self.non_movable_code]:
             self.update_robot_position_in_state(current_pos,current_pos)
             self.update_robot_movement_state(current_pos,current_pos,next_cell_code)
+            self.state[tuple(next_pos)] = next_cell_code # updates observation
             if next_cell_code == self.non_movable_code:
                 self.cumulative_immovable_interactions += 1
             action_info = {
@@ -178,6 +185,8 @@ class SearchAndRescueEnv(gym.Env):
             else:
                 self.update_robot_position_in_state(current_pos,current_pos)
                 self.update_robot_movement_state(current_pos,current_pos,self.non_movable_code) # manually updating visit for this state to be higher so it doesnt visit it
+                self.state[tuple(next_pos)] = next_cell_code
+                self.state[tuple(new_obj_pos)] = new_obj_pos_fov_cell_code
                 action_info = {
                     "object_type":next_cell_code,
                     "movablity":False,
@@ -186,6 +195,7 @@ class SearchAndRescueEnv(gym.Env):
                 }
         else: # next cell code is goal
             self.update_robot_position_in_state(current_pos,next_pos)
+            self.state[tuple(next_pos)] = next_cell_code
             action_info = {
                 "object_type":next_cell_code,
                 "movablity":True,
@@ -204,21 +214,23 @@ class SearchAndRescueEnv(gym.Env):
         
         if next_cell_code in [self.wall_code,self.room_code]: # penalize for collision with wall and room
             reward -= 1
-            done = True
+            # done = True
         
         if self.robot_movement_state[tuple(next_pos)] == 0: # reward for new visits - promotes exploration
-            reward += 1
+            reward += 2
         
         if next_cell_code == self.goal_code: # reward for reaching goal higher
             reward += 10
             done = True
 
-        # Use distance reward if more reward for exploration is necessary
-        goal_pos = self.get_goal_position()
-        max_dist = self.get_maximum_distance()
-        distance = math.sqrt((next_pos[0] - goal_pos[0])**2 + (next_pos[1] - goal_pos[1])**2)
-        distance_reward = 1 * (1 - (distance / max_dist))
-        reward += max(distance_reward, 0)
+        # goal_pos = self.get_goal_position()
+        # max_dist = self.get_maximum_distance()
+        # distance = math.sqrt((next_pos[0] - goal_pos[0])**2 + (next_pos[1] - goal_pos[1])**2)
+        # distance_reward = 5 * (1 - (distance / max_dist))
+        # reward += max(distance_reward, 0)
+        
+        if self.current_step >= self.max_steps:
+            done = True
         
         return reward,done
     
@@ -227,7 +239,7 @@ class SearchAndRescueEnv(gym.Env):
             wandb.log({"immovable_interactions":self.cumulative_immovable_interactions})
         elif next_cell_code == self.movable_code:
             wandb.log({"movable_interactions":self.cumulative_movable_interactions})
-    
+            
     def step(self, action):
         done = False
         self.current_step += 1

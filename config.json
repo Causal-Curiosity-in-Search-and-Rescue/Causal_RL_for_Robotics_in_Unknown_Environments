@@ -4,7 +4,7 @@
     "policy": "MlpPolicy",
     "total_timesteps": 2000,
     "wandb":{
-        "project":"[GDP]-RL-Logs",
-        "username":"juliangeralddcruz"
+        "project":"[2D] Using Movability KB",
+        "entity":"SR_GDP"
     }
 }
