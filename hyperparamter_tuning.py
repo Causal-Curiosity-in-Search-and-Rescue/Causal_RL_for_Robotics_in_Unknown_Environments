@@ -30,9 +30,14 @@ def objective(trial):
     learning_rate = trial.suggest_loguniform('learning_rate', 1e-5, 1e-3)
     ent_coef = trial.suggest_loguniform('ent_coef', 0.0001, 0.1)
     
-    
+    config = {
+        "model": CONFIG['algorithm'],
+        "policy":CONFIG['policy'],
+        "timesteps":CONFIG['total_timesteps'],
+        "env":CONFIG['environment']
+    }
     wandb.init(
-        config=CONFIG,
+        config=config,
         sync_tensorboard=True,  # automatically upload SB3's tensorboard metrics to W&B
         project="rl_learning",
         monitor_gym=True,       # automatically upload gym environements' videos
@@ -53,7 +58,7 @@ def objective(trial):
     
     model.learn(total_timesteps=CONFIG['rl_config']['total_timesteps'], callback=WandBCallback())
     
-    mean_reward, _ = evaluate_policy(model, env, n_eval_emean_rewardpisodes=10)
+    mean_reward, _ = evaluate_policy(model, env, n_eval_episodes=10)
     wandb.log({"mean_reward": mean_reward})
     model.save(f"a2c_crl_{trial}_{mean_reward}")
     run.finish()
