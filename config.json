@@ -2,7 +2,7 @@
     "environment":"SearchAndRescueEnv-v0",
     "algorithm":"A2C",
     "policy": "MlpPolicy",
-    "total_timesteps": 2000,
+    "total_timesteps": 10000,
     "wandb":{
         "project":"[2D] Using Movability KB",
         "entity":"SR_GDP"

@@ -26,7 +26,7 @@ class SearchAndRescueEnv(gym.Env):
             num_immovable_objects:int=2,
             num_start_pos:int=1,
             grid_size:int=20, 
-            max_step:int=400,
+            max_step:int=800,
             randomness:bool=False,
             save_map:bool=True,
             log_dir:str='logs'
@@ -64,17 +64,6 @@ class SearchAndRescueEnv(gym.Env):
         self.state = None
         self.reset()
         self.setup_environment()
-    
-    # def visualize_visit_heatmap(self): #@deprecated
-    #     plt.figure(figsize=(10, 8))
-    #     plt.title("Robot Movement Heatmap")
-    #     heatmap = plt.imshow(self.robot_movement_state, cmap='viridis', interpolation='nearest')
-    #     plt.colorbar(heatmap)
-    #     visits_dir = check_and_create_directory(os.path.join(self.log_dir,"visits"))
-    #     image_path = os.path.join(visits_dir,f"{self.episode_count}-robot_movement_heatmap.png")
-    #     plt.savefig(image_path)
-    #     plt.close()  
-    #     wandb.log({"Robot Movement Heatmap": wandb.Image(image_path)})
     
     def get_robot_position(self)->np.ndarray:
         return np.argwhere(self.state == self.robot_code)[0]
@@ -152,7 +141,7 @@ class SearchAndRescueEnv(gym.Env):
         self.digital_map[tuple(next_pos)] = self.robot_code
     
     def update_robot_movement_state(self, old_pos, new_pos, cell_code):
-        logging.info(f'Updating Robot Movement State : {old_pos} -> {new_pos}, Code : {cell_code}')
+        logging.debug(f'Updating Robot Movement State : {old_pos} -> {new_pos}, Code : {cell_code}')
         
         if tuple(old_pos) != tuple(new_pos):
             self.robot_movement_state[tuple(new_pos)] += 1
@@ -186,7 +175,7 @@ class SearchAndRescueEnv(gym.Env):
             self.cumulative_movable_interactions += 1
             new_obj_pos = self.get_fov_cell(next_pos, action)
             new_obj_pos_fov_cell_code = self.get_fov_info(new_obj_pos)
-            if new_obj_pos_fov_cell_code not in [self.non_movable_code,self.wall_code,self.room_code,self.movable_code]:
+            if new_obj_pos_fov_cell_code not in [self.non_movable_code,self.wall_code,self.room_code,self.movable_code,self.goal_code]:
                 self.update_robot_position_in_state(current_pos,next_pos)
                 self.update_robot_movement_state(current_pos,next_pos,next_cell_code)
                 self.state[tuple(new_obj_pos)] = self.movable_code
@@ -232,10 +221,10 @@ class SearchAndRescueEnv(gym.Env):
             # done = True
         
         if self.robot_movement_state[tuple(next_pos)] == 0: # reward for new visits - promotes exploration
-            reward += 2
+            reward += 4
         
         if next_cell_code == self.goal_code: # reward for reaching goal higher
-            reward += 10
+            reward += 50
             logging.info(f"[GOAL] Goal Reached @ {self.episode_count}")
             done = True
 
@@ -250,34 +239,32 @@ class SearchAndRescueEnv(gym.Env):
         
         return reward,done
     
-    def log_interactions(self,next_cell_code): # will log interactions per episode
-        if next_cell_code == self.non_movable_code:
-            wandb.log({"immovable_interactions":self.cumulative_immovable_interactions})
-        elif next_cell_code == self.movable_code:
-            wandb.log({"movable_interactions":self.cumulative_movable_interactions})
+    def log_interactions(self): # will log interactions per episode
+        wandb.log({"immovable_interactions":self.cumulative_immovable_interactions})
+        wandb.log({"movable_interactions":self.cumulative_movable_interactions})
             
     def step(self, action):
         done = False
-        self.current_step += 1
         self.robot_pos = self.get_robot_position()
         next_pos = self.get_fov_cell(self.robot_pos, action)
         cell_code = self.get_fov_info(next_pos)
         reward,done = self.calculate_reward(next_pos,cell_code)
         self.translate_action(action,self.robot_pos,next_pos,cell_code)
         self.cumulative_reward += reward        
+        wandb.log({"episode":self.episode_count,"step":self.current_step})
+        wandb.log({"step":self.current_step,"reward":reward})
         if done:
-            self.log_interactions(cell_code)
-            self.episode_count += 1
+            self.log_interactions()
             wandb.log({"episode":self.episode_count,"cummulative_reward":self.cumulative_reward})
-            # self.visualize_visit_heatmap() # Deprecated 
+            self.episode_count += 1
         
-        wandb.log({f"step":self.current_step,"reward":reward})
-        
+        self.current_step += 1
+        logging.info(f"-EPISODE:{self.episode_count} @ STEP:{self.current_step}- Reward : {reward}")
         return self.state, reward, done, {}
 
     def normalize_array(self,array):
         if np.max(array) == np.min(array):
-            return np.zeros(array.shape)
+            return array
         else:
             return (array - np.min(array)) / (np.max(array) - np.min(array))
 
@@ -315,7 +302,6 @@ class SearchAndRescueEnv(gym.Env):
                 
                 normalized_movement_state = self.normalize_array(self.robot_movement_state)
                 sns.heatmap(normalized_movement_state, ax=axs[2], cmap='viridis', cbar=True)
-                axs[2].invert_yaxis()  # Invert y-axis to match the other plot's layout
                 axs[2].set_title('Digital Map Visitation Heatmap')
                 
                 # Convert the Matplotlib figure to an RGB array
@@ -359,7 +345,6 @@ class SearchAndRescueEnv(gym.Env):
                         
                 normalized_movement_state = self.normalize_array(self.robot_movement_state)
                 sns.heatmap(normalized_movement_state, ax=axs[2], cmap='viridis', cbar=True)
-                axs[2].invert_yaxis()  # Invert y-axis to match the other plot's layout
                 axs[2].set_title('Digital Map Visitation Heatmap')
                 
                 # Convert the Matplotlib figure to an RGB array
