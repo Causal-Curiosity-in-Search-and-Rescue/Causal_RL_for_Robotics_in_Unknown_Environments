@@ -220,8 +220,8 @@ class SearchAndRescueEnv(gym.Env):
             reward -= 1
             # done = True
         
-        if self.robot_movement_state[tuple(next_pos)] == 0: # reward for new visits - promotes exploration
-            reward += 4
+        if self.robot_movement_state[tuple(next_pos)] == 1: # reward for new visits - promotes exploration
+            reward += 3
         
         if next_cell_code == self.goal_code: # reward for reaching goal higher
             reward += 50
