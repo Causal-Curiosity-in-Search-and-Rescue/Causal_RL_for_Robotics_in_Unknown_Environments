@@ -141,7 +141,7 @@ class SearchAndRescueEnv(gym.Env):
         self.digital_map[tuple(next_pos)] = self.robot_code
     
     def update_robot_movement_state(self, old_pos, new_pos, cell_code):
-        logging.debug(f'Updating Robot Movement State : {old_pos} -> {new_pos}, Code : {cell_code}')
+        logging.info(f'-| Updating Robot Movement State : {old_pos} -> {new_pos} |  FOV CODE : {cell_code} |-')
         
         if tuple(old_pos) != tuple(new_pos):
             self.robot_movement_state[tuple(new_pos)] += 1
@@ -221,10 +221,10 @@ class SearchAndRescueEnv(gym.Env):
             # done = True
         
         if self.robot_movement_state[tuple(next_pos)] == 1: # reward for new visits - promotes exploration
-            reward += 3
+            reward += 1
         
         if next_cell_code == self.goal_code: # reward for reaching goal higher
-            reward += 50
+            reward += 10
             logging.info(f"[GOAL] Goal Reached @ {self.episode_count}")
             done = True
 
