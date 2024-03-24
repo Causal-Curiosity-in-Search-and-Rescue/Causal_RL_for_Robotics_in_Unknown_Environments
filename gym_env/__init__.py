@@ -11,3 +11,7 @@ register(
     entry_point='gym_env.search_and_rescue:SearchAndRescueEnv',
 )
 
+register(
+    id='SearchAndRescueNoCausalEnv-v0',
+    entry_point='gym_env.search_and_rescue_brainless:SearchAndRescueNoCausalEnv',
+)

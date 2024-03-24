@@ -17,9 +17,9 @@ import pdb
 import time 
 
 """
-Using Causal Observation Space - Where Object Movability is shown in Observation Space
+Using RL Observation Space - Where Object Movability is not shown in Observation Space
 """
-class SearchAndRescueEnv(gym.Env):
+class SearchAndRescueNoCausalEnv(gym.Env):
     metadata = {'render_modes': ['human','rgb_array']}
 
     def __init__(
@@ -34,7 +34,7 @@ class SearchAndRescueEnv(gym.Env):
             save_map:bool=True,
             log_dir:str='logs'
         ):
-        super(SearchAndRescueEnv, self).__init__()
+        super(SearchAndRescueNoCausalEnv, self).__init__()
         self.use_random = randomness
         self.max_steps = max_step
         self.log_dir = check_and_create_directory(log_dir)
@@ -54,6 +54,7 @@ class SearchAndRescueEnv(gym.Env):
         self.wall_code = 0
         self.movable_code = 2
         self.non_movable_code = 3
+        self.object_code = 2 # Will be used for Non Causal Observation Space so the Agent will not distinguish between objects 
         self.goal_code = 6
         self.room_code = 4
         self.free_space = 1
@@ -94,16 +95,13 @@ class SearchAndRescueEnv(gym.Env):
         self.cumulative_immovable_interactions = 0
         self.cumulative_movable_interactions = 0
         
-        """
-        Return the MAP_STATE as the Observation space - this means we are saying the causal movability is determined wth texture and the robot knows about it
-        """
         self.digital_map = np.copy(self.M_KB)
         self.state = np.ones(self.grid_size,dtype=np.int32)
         robot_pos = np.argwhere(self.M_KB == self.robot_code)[0]
         goal_pos = np.argwhere(self.M_KB == self.goal_code)[0]
         self.state[tuple(robot_pos)] = self.robot_code
         self.state[tuple(goal_pos)] = self.goal_code
-       
+        
         self.setup_environment()
         self.robot_pos = self.get_robot_position()
         
@@ -155,7 +153,10 @@ class SearchAndRescueEnv(gym.Env):
         elif next_cell_code in [self.wall_code,self.room_code, self.non_movable_code]:
             self.update_robot_position_in_state(current_pos,current_pos)
             self.update_robot_movement_state(current_pos,current_pos,next_cell_code)
-            self.state[tuple(next_pos)] = next_cell_code # updates observation
+            if next_cell_code == self.non_movable_code:
+                self.state[tuple(next_pos)] = self.object_code # updates observation
+            else:
+                self.state[tuple(next_pos)] = next_cell_code # updates observation
             if next_cell_code == self.non_movable_code:
                 self.cumulative_immovable_interactions += 1
             action_info = {
@@ -171,7 +172,7 @@ class SearchAndRescueEnv(gym.Env):
             if new_obj_pos_fov_cell_code not in [self.non_movable_code,self.wall_code,self.room_code,self.movable_code,self.goal_code]:
                 self.update_robot_position_in_state(current_pos,next_pos)
                 self.update_robot_movement_state(current_pos,next_pos,next_cell_code)
-                self.state[tuple(new_obj_pos)] = self.movable_code
+                self.state[tuple(new_obj_pos)] = self.object_code
                 self.digital_map[tuple(new_obj_pos)] = self.movable_code
                 action_info = {
                     "object_type":next_cell_code,
@@ -182,7 +183,7 @@ class SearchAndRescueEnv(gym.Env):
             else:
                 self.update_robot_position_in_state(current_pos,current_pos)
                 self.update_robot_movement_state(current_pos,current_pos,self.non_movable_code) # manually updating visit for this state to be higher so it doesnt visit it
-                self.state[tuple(next_pos)] = next_cell_code # updates observation
+                self.state[tuple(next_pos)] = self.object_code # updates observation
                 self.state[tuple(new_obj_pos)] = new_obj_pos_fov_cell_code
                 action_info = {
                     "object_type":next_cell_code,

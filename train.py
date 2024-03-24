@@ -1,5 +1,6 @@
 import gym_env.custom_env 
 import gym_env.search_and_rescue 
+import gym_env.search_and_rescue_brainless
 from stable_baselines3 import PPO,A2C
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.vec_env import DummyVecEnv
@@ -68,13 +69,13 @@ for step in range(total_timesteps):
 
     if done:
         episode_rewards.append(sum_rewards)  
-        model.save(os.path.join("logs", f'causal_model_{episode_count}.zip'))  
+        model.save(os.path.join("logs", f'non_causal_model_{episode_count}.zip'))  
         if sum_rewards > best_mean_reward:
             best_mean_reward = sum_rewards  
             best_episode = episode_count  
             
             os.rename(
-                os.path.join("logs", f'causal_model_{episode_count}.zip'),
+                os.path.join("logs", f'non_causal_model_{episode_count}.zip'),
                 os.path.join("logs", 'best_model.zip')
             )
 

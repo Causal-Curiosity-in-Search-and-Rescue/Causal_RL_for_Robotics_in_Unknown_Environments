@@ -1,5 +1,5 @@
 {
-    "environment":"SearchAndRescueEnv-v0",
+    "environment":"SearchAndRescueNoCausalEnv-v0",
     "algorithm":"A2C",
     "policy": "MlpPolicy",
     "total_timesteps": 10000,
