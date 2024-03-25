@@ -1,8 +1,8 @@
 {
     "environment":{
         "name":"SearchAndRescueEnv-v0",
-        "num_movable_objects":2,
-        "num_immovable_objects":2,
+        "num_movable_objects":6,
+        "num_immovable_objects":6,
         "num_start_pos":1,
         "grid_size":20,
         "randomness":false,
@@ -13,7 +13,7 @@
     "policy": "MlpPolicy",
     "total_timesteps": 10000,
     "wandb":{
-        "project":"[2D] Using Movability KB",
+        "project":"[2D] Using Movability KB With Randomness 6 Objects Each",
         "entity":"SR_GDP"
     },
     "log_dir":"causal_experiment_with_randomness",
@@ -22,5 +22,5 @@
         "map_path":"/home/julian/git-repo/juliangdz/CausalCuriosityGDP/Search_And_Rescue_2D/causal_experiment_logs/maze_plan.pkl",
         "model_path":"/home/julian/git-repo/juliangdz/CausalCuriosityGDP/Search_And_Rescue_2D/causal_experiment_logs/causal_model_8.zip"
     },
-    "mode":"test"
+    "mode":"train"
 }
