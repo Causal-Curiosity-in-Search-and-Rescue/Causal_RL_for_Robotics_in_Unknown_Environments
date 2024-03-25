@@ -1,6 +1,7 @@
 import json
 import os 
 import numpy as np
+import pickle
 import copy
 import random
 import matplotlib.pyplot as plt
@@ -82,6 +83,12 @@ def generate_maze(height, width):
     maze_with_array = place_array_in_middle(maze)
     maze_with_u = place_u_near_walls(maze_with_array)
     return maze_with_u
+
+def load_saved_map(map_path):
+    with open(map_path,"rb") as file:
+        map_plan = pickle.load(file)
+    
+    return map_plan,convert_to_movable_knowledge_array(map_plan),convert_to_no_movable_knowledge_array(map_plan)
  
 def place_array_in_middle(maze):
     middle_row = len(maze) // 2
@@ -102,7 +109,6 @@ def place_array_in_middle(maze):
             maze[middle_row - 2 + i][middle_col - 3 + j] = array_to_place[i][j]
  
     return maze
- 
  
 def place_u_near_walls(maze):
     height = len(maze)

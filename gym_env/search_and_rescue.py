@@ -9,7 +9,7 @@ import matplotlib.backends.backend_agg as agg
 import copy
 import os 
 import pickle
-from utils.helper import generate_maze_with_objects,visualisemaze,check_and_create_directory,read_config
+from utils.helper import generate_maze_with_objects,visualisemaze,check_and_create_directory,read_config,load_saved_map
 import wandb
 import logging
 import math
@@ -24,31 +24,29 @@ class SearchAndRescueEnv(gym.Env):
 
     def __init__(
             self,
-            render_mode:str='human',
-            num_movable_objects:int=2,
-            num_immovable_objects:int=2,
-            num_start_pos:int=1,
-            grid_size:int=20, 
-            max_step:int=800,
-            randomness:bool=False,
-            save_map:bool=True,
-            log_dir:str='logs'
+            render_mode:str='human'
         ):
         super(SearchAndRescueEnv, self).__init__()
-        self.use_random = randomness
-        self.max_steps = max_step
-        self.log_dir = check_and_create_directory(log_dir)
-        self.grid_size = (grid_size,grid_size)
-        self.num_m = num_movable_objects
-        self.num_i = num_immovable_objects
-        self.num_s = num_start_pos
-        self.MAP_PLAN,self.M_KB,self.U_KB = generate_maze_with_objects(grid_size,grid_size,num_movable_objects,num_immovable_objects,num_start_pos)
-        if save_map:
-            with open(os.path.join(log_dir,'maze_plan.pkl'),'wb') as file:
-                pickle.dump(self.MAP_PLAN,file)
-            visualisemaze(self.MAP_PLAN,log_dir)
+        CONFIG = read_config()
+        ENV_CONFIG = CONFIG['environment']
+        self.use_random = ENV_CONFIG['randomness']
+        self.max_steps = ENV_CONFIG['max_steps']
+        self.log_dir = check_and_create_directory( CONFIG['log_dir'])
+        self.grid_size = ( ENV_CONFIG['grid_size'], ENV_CONFIG['grid_size'])
+        self.num_m =  ENV_CONFIG['num_movable_objects']
+        self.num_i =  ENV_CONFIG['num_immovable_objects']
+        self.num_s =  ENV_CONFIG['num_start_pos']
+        if CONFIG['mode'] == 'train':
+            self.MAP_PLAN,self.M_KB,self.U_KB = generate_maze_with_objects(self.grid_size[0],self.grid_size[1],self.num_m,self.num_i,self.num_s)
+            if  ENV_CONFIG['save_map']:
+                with open(os.path.join(CONFIG['log_dir'],'maze_plan.pkl'),'wb') as file:
+                    pickle.dump(self.MAP_PLAN,file)
+                visualisemaze(self.MAP_PLAN,self.log_dir)
+        elif CONFIG['mode'] == 'test':
+            self.MAP_PLAN,self.M_KB,self.U_KB = load_saved_map(CONFIG["inference"]["map_path"])
+            
         self.episode_count = 0
-        self.num_objects = num_movable_objects + num_immovable_objects
+        self.num_objects = self.num_m + self.num_i
         # Code assignments
         self.robot_code = 5
         self.wall_code = 0
@@ -214,7 +212,7 @@ class SearchAndRescueEnv(gym.Env):
             # done = True
         
         if self.robot_movement_state[tuple(next_pos)] == 1: # reward for new visits - promotes exploration
-            reward += 1
+            reward += 2
         
         if next_cell_code == self.goal_code: # reward for reaching goal higher
             reward += 10

@@ -49,41 +49,25 @@ wandb.init(
     save_code=True,
 )
 
+model = A2C.load(CONFIG["inference"]["model_path"])
+
 env = DummyVecEnv([make_env])
-model = A2C(config['policy'], env, verbose=1) 
+obs = env.reset()
 
-# model.learn(total_timesteps=config['timesteps'], callback=callback) # No Control over model save
+total_episodes = CONFIG["inference"]["num_episodes"]  
+episode_rewards = []
 
-# Custom Training Loop
-total_timesteps = config['timesteps'] 
-episode_rewards = []  
-best_mean_reward = -float('inf')  
-best_episode = 0 
-obs = env.reset()  
-episode_count = 0  
-sum_rewards = 0  
+for episode in range(total_episodes):
+    done = False
+    sum_rewards = 0  
 
-for step in range(total_timesteps):
-    action, _ = model.predict(obs)
-    obs, reward, done, info = env.step(action)
-    # sum_rewards += reward  
+    while not done:
+        action, _states = model.predict(obs, deterministic=True)  # deterministic=True for reproducible actions
+        obs, reward, done, info = env.step(action)
+        sum_rewards += reward
 
-    if done:
-        episode_rewards.append(sum_rewards)  
-        model.save(os.path.join(log_dir, f'final_model_{episode_count}.zip'))  
-        # if sum_rewards > best_mean_reward:
-        #     best_mean_reward = sum_rewards  
-        #     best_episode = episode_count  
-            
-        #     os.rename(
-        #         os.path.join(log_dir, f'final_model_{episode_count}.zip'),
-        #         os.path.join(log_dir, 'best_model.zip')
-        #     )
+    episode_rewards.append(sum_rewards)  
+    obs = env.reset()  
 
-        episode_count += 1  
-        # sum_rewards = 0  
-        obs = env.reset()  
-
-logging.info(f"Total episodes: {episode_count}")
-logging.info(f"Average reward: {np.mean(episode_rewards)}")
-logging.info(f"Best episode: {best_episode} with reward: {best_mean_reward}")
+average_reward = np.mean(episode_rewards)
+logging.info(f"Completed {total_episodes} episodes with an average reward of {average_reward}")
