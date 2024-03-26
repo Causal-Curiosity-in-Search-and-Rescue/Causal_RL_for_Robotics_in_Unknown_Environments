@@ -5,6 +5,7 @@ from stable_baselines3 import PPO,A2C
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.evaluation import evaluate_policy
+import time
 import wandb
 import numpy as np 
 import gym 
@@ -34,6 +35,24 @@ def make_env():
     env = gym.wrappers.RecordEpisodeStatistics(env)  # record stats such as returns
     return env
 
+def log_to_wandb(goal_reached,episode_count, current_step, cumulative_reward, cumulative_interactions,movable_interactions,non_movable_interactions, goal_reward,time_taken):
+    if 'summary_table' not in wandb.run.summary:
+        columns = ["goal_reached", "episode_count", "current_step","cumulative_reward", "cumulative_interactions", "movable_interactions","non_movable_interactions","goal_reward","time_taken"]
+        wandb.run.summary['results_table'] = wandb.Table(columns=columns)
+   
+    wandb.run.summary['results_table'].add_data(goal_reached,episode_count, current_step, cumulative_reward, cumulative_interactions,movable_interactions,non_movable_interactions, goal_reward,time_taken)
+    wandb.log({
+        "goal_reached":goal_reached,
+        "episode_count": episode_count,
+        "current_step":current_step,
+        "cumulative_reward":cumulative_reward,
+        "cumulative_interactions":cumulative_interactions,
+        "movable_interactions":movable_interactions,
+        "non_movable_interactions":non_movable_interactions,
+        "goal_reward":reward,
+        "time_taken":time_taken
+    })
+
 config = {
     "model": CONFIG['algorithm'],
     "policy":CONFIG['policy'],
@@ -62,27 +81,45 @@ best_episode = 0
 obs = env.reset()  
 episode_count = 0  
 sum_rewards = 0  
+start_timer = time.time()
 
 for step in range(total_timesteps):
     action, _ = model.predict(obs)
     obs, reward, done, info = env.step(action)
-    # sum_rewards += reward  
 
     if done:
+        time_taken_for_episode = time.time() - start_timer
         episode_rewards.append(sum_rewards)  
-        model.save(os.path.join(log_dir, f'final_model_{episode_count}.zip'))  
-        # if sum_rewards > best_mean_reward:
-        #     best_mean_reward = sum_rewards  
-        #     best_episode = episode_count  
-            
-        #     os.rename(
-        #         os.path.join(log_dir, f'final_model_{episode_count}.zip'),
-        #         os.path.join(log_dir, 'best_model.zip')
-        #     )
-
+        model.save(os.path.join(log_dir, f'final_model_{episode_count}.zip')) 
+        if step >= CONFIG['environment']['max_steps'] - 1:
+            log_to_wandb(
+                info["goal_reached"],
+                info["episode_count"],
+                info["current_step"],
+                info["cumulative_reward"],
+                info["cumulative_interactions"],
+                info["movable_interactions"],
+                info["non_movable_interactions"],
+                info["goal_reward"],
+                time_taken_for_episode
+            )
+        elif info['goal_reached']:
+            log_to_wandb(
+                info["goal_reached"],
+                info["episode_count"],
+                info["current_step"],
+                info["cumulative_reward"],
+                info["cumulative_interactions"],
+                info["movable_interactions"],
+                info["non_movable_interactions"],
+                info["goal_reward"],
+                time_taken_for_episode
+            )
         episode_count += 1  
         # sum_rewards = 0  
         obs = env.reset()  
+        start_timer = time.time()
+        
 
 logging.info(f"Total episodes: {episode_count}")
 logging.info(f"Average reward: {np.mean(episode_rewards)}")

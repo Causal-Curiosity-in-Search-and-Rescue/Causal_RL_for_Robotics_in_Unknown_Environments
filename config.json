@@ -11,12 +11,12 @@
     },
     "algorithm":"A2C",
     "policy": "MlpPolicy",
-    "total_timesteps": 10000,
+    "total_timesteps": 64000,
     "wandb":{
-        "project":"[2D] Using Movability KB With Randomness 6 Objects Each",
+        "project":"[2D] Causal vs Non-Causal 64K 6_obj each",
         "entity":"SR_GDP"
     },
-    "log_dir":"causal_experiment_with_randomness",
+    "log_dir":"causal_exp_random_64K_6_obj",
     "inference":{
         "num_episodes":100,
         "map_path":"/home/julian/git-repo/juliangdz/CausalCuriosityGDP/Search_And_Rescue_2D/causal_experiment_logs/maze_plan.pkl",

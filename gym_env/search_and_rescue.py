@@ -206,6 +206,7 @@ class SearchAndRescueEnv(gym.Env):
     def calculate_reward(self,next_pos,next_cell_code) :
         reward = 0
         done = False
+        goal_reached = False
         
         if next_cell_code in [self.wall_code,self.room_code]: # penalize for collision with wall and room
             reward -= 1
@@ -214,10 +215,15 @@ class SearchAndRescueEnv(gym.Env):
         if self.robot_movement_state[tuple(next_pos)] == 1: # reward for new visits - promotes exploration
             reward += 1
         
-        if next_cell_code == self.goal_code: # reward for reaching goal higher
-            reward += 10
+        if next_cell_code == self.goal_code:  # reward for reaching goal
+            base_reward = 10
+            remaining_steps_ratio = (self.max_steps - self.current_step) / self.max_steps
+            additional_reward = remaining_steps_ratio * 10
+            reward += min(base_reward + additional_reward, 20)
             logging.info(f"[GOAL] Goal Reached @ {self.episode_count}")
+            goal_reached = True
             done = True
+            
 
         # goal_pos = self.get_goal_position()
         # max_dist = self.get_maximum_distance()
@@ -228,7 +234,7 @@ class SearchAndRescueEnv(gym.Env):
         if self.current_step >= self.max_steps:
             done = True
         
-        return reward,done
+        return reward,done,goal_reached
     
     def log_interactions(self): # will log interactions per episode
         wandb.log({"immovable_interactions":self.cumulative_immovable_interactions})
@@ -239,19 +245,29 @@ class SearchAndRescueEnv(gym.Env):
         self.robot_pos = self.get_robot_position()
         next_pos = self.get_fov_cell(self.robot_pos, action)
         cell_code = self.get_fov_info(next_pos)
-        reward,done = self.calculate_reward(next_pos,cell_code)
+        reward,done,goal_reached = self.calculate_reward(next_pos,cell_code)
         self.translate_action(action,self.robot_pos,next_pos,cell_code)
         self.cumulative_reward += reward        
         wandb.log({"episode":self.episode_count,"step":self.current_step})
         wandb.log({"step":self.current_step,"reward":reward})
+        info = {
+            "goal_reached":goal_reached,
+            "episode_count": self.episode_count,
+            "current_step":self.current_step,
+            "cumulative_reward":self.cumulative_reward,
+            "cumulative_interactions":sum([self.cumulative_movable_interactions,self.cumulative_immovable_interactions]),
+            "movable_interactions":self.cumulative_movable_interactions,
+            "non_movable_interactions":self.cumulative_immovable_interactions,
+            "goal_reward":reward
+        }
+        logging.info(f"-EPISODE:{self.episode_count} @ STEP:{self.current_step}- Reward : {reward}")
         if done:
             self.log_interactions()
             wandb.log({"episode":self.episode_count,"cummulative_reward":self.cumulative_reward})
             self.episode_count += 1
         
         self.current_step += 1
-        logging.info(f"-EPISODE:{self.episode_count} @ STEP:{self.current_step}- Reward : {reward}")
-        return self.state, reward, done, {}
+        return self.state, reward, done, info
 
     def normalize_array(self,array):
         if np.max(array) == np.min(array):
