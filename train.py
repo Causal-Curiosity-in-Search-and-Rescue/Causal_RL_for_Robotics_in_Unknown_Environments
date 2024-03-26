@@ -86,33 +86,32 @@ start_timer = time.time()
 for step in range(total_timesteps):
     action, _ = model.predict(obs)
     obs, reward, done, info = env.step(action)
-
     if done:
         time_taken_for_episode = time.time() - start_timer
         episode_rewards.append(sum_rewards)  
         model.save(os.path.join(log_dir, f'final_model_{episode_count}.zip')) 
         if step >= CONFIG['environment']['max_steps'] - 1:
             log_to_wandb(
-                info["goal_reached"],
-                info["episode_count"],
-                info["current_step"],
-                info["cumulative_reward"],
-                info["cumulative_interactions"],
-                info["movable_interactions"],
-                info["non_movable_interactions"],
-                info["goal_reward"],
+                info[0]["goal_reached"],
+                info[0]["episode_count"],
+                info[0]["current_step"],
+                info[0]["cumulative_reward"],
+                info[0]["cumulative_interactions"],
+                info[0]["movable_interactions"],
+                info[0]["non_movable_interactions"],
+                info[0]["goal_reward"],
                 time_taken_for_episode
             )
         elif info['goal_reached']:
             log_to_wandb(
-                info["goal_reached"],
-                info["episode_count"],
-                info["current_step"],
-                info["cumulative_reward"],
-                info["cumulative_interactions"],
-                info["movable_interactions"],
-                info["non_movable_interactions"],
-                info["goal_reward"],
+                info[0]["goal_reached"],
+                info[0]["episode_count"],
+                info[0]["current_step"],
+                info[0]["cumulative_reward"],
+                info[0]["cumulative_interactions"],
+                info[0]["movable_interactions"],
+                info[0]["non_movable_interactions"],
+                info[0]["goal_reward"],
                 time_taken_for_episode
             )
         episode_count += 1  
