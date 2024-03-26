@@ -233,7 +233,7 @@ class SearchAndRescueNoCausalEnv(gym.Env):
         if self.current_step >= self.max_steps:
             done = True
         
-        return reward,done
+        return reward,done,goal_reached
     
     def log_interactions(self): # will log interactions per episode
         wandb.log({"immovable_interactions":self.cumulative_immovable_interactions})
