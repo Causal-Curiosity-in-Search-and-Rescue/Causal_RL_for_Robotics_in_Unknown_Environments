@@ -7,7 +7,7 @@
         "grid_size":20,
         "randomness":true,
         "max_steps":800,
-        "save_map":true,
+        "save_map":false,
         "wall_penalty":1,
         "goal_base_reward":10,
         "goal_factor":2,
@@ -16,9 +16,9 @@
     },
     "algorithm":"A2C",
     "policy": "MlpPolicy",
-    "total_timesteps": 10000,
+    "total_timesteps": 240000,
     "wandb":{
-        "project":"[2D] Causal vs Non-Causal 10K 6_obj each no_exploration_reward use_distance_reward",
+        "project":"[2D] Causal vs Non-Causal 240K - use_distance_reward no_exploration_reward 6obj_each",
         "entity":"SR_GDP"
     },
     "log_dir":"causal_exp_random_10K_6_obj_no_exploration_reward_use_distance_reward",
