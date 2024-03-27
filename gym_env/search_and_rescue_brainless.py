@@ -82,7 +82,7 @@ class SearchAndRescueNoCausalEnv(gym.Env):
     def reset(self):
         if self.use_random:
             self.MAP_PLAN,self.M_KB,self.U_KB = generate_maze_with_objects(self.grid_size[0],self.grid_size[1],self.num_m,self.num_i,self.num_s)
-            if  ENV_CONFIG['save_map']:
+            if  self.env_config['save_map']:
                 map_log_dir = check_and_create_directory(os.path.join(self.log_dir,"maps",str(self.episode_count)))
                 with open(os.path.join(map_log_dir,'maze_plan.pkl'),'wb') as file:
                     pickle.dump(self.MAP_PLAN,file)
