@@ -204,6 +204,17 @@ class SearchAndRescueEnv(gym.Env):
     def get_maximum_distance(self):
         return math.sqrt(self.grid_size[0]**2 + self.grid_size[1]**2)
     
+    def calculate_max_distance(self):
+        # Calculate distances from the goal to each of the four corners
+        goal_pos = self.get_goal_position()
+        distances = [
+            math.sqrt((goal_pos[0] - 0) ** 2 + (goal_pos[1] - 0) ** 2),           # Distance to bottom-left corner
+            math.sqrt((goal_pos[0] - self.grid_size[0]) ** 2 + (goal_pos[1] - 0) ** 2),       # Distance to bottom-right corner
+            math.sqrt((goal_pos[0] - 0) ** 2 + (goal_pos[1] - self.grid_size[1]) ** 2),      # Distance to top-left corner
+            math.sqrt((goal_pos[0] - self.grid_size[0]) ** 2 + (goal_pos[1] - self.grid_size[1]) ** 2)   # Distance to top-right corner
+        ]
+        return max(distances)
+    
     def calculate_reward(self,next_pos,next_cell_code) :
         reward = 0
         done = False
@@ -224,12 +235,14 @@ class SearchAndRescueEnv(gym.Env):
             logging.info(f"[GOAL] Goal Reached @ {self.episode_count}")
             goal_reached = True
             done = True
-
-        # goal_pos = self.get_goal_position()
-        # max_dist = self.get_maximum_distance()
-        # distance = math.sqrt((next_pos[0] - goal_pos[0])**2 + (next_pos[1] - goal_pos[1])**2)
-        # distance_reward = 5 * (1 - (distance / max_dist))
-        # reward += max(distance_reward, 0)
+        
+        # Distance reward to goal - scale from 0 to 5
+        if self.env_config['distance_reward']:
+            goal_pos = self.get_goal_position()
+            max_rel_goal_dist = self.calculate_max_distance()
+            distance = math.sqrt((next_pos[0] - goal_pos[0]) ** 2 + (next_pos[0] - goal_pos[1]) ** 2)
+            normalized_distance = distance / max_rel_goal_dist
+            reward += (1 - normalized_distance) * 5
         
         if self.current_step >= self.max_steps:
             done = True

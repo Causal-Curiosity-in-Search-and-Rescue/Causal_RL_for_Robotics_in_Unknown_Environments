@@ -32,8 +32,8 @@ def always_record(episode_id):
 
 def make_env():
     env = gym.make(CONFIG["environment"]["name"], render_mode="rgb_array")
-    env = gym.wrappers.RecordVideo(env, f"{log_dir}/videos",episode_trigger=always_record)  # record videos
-    env = gym.wrappers.RecordEpisodeStatistics(env)  # record stats such as returns
+    # env = gym.wrappers.RecordVideo(env, f"{log_dir}/videos",episode_trigger=always_record)  # record videos
+    # env = gym.wrappers.RecordEpisodeStatistics(env)  # record stats such as returns
     return env
 
 def log_to_wandb(cumulative_data):

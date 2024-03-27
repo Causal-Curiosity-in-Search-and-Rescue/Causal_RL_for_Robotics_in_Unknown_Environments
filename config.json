@@ -11,7 +11,8 @@
         "wall_penalty":1,
         "goal_base_reward":10,
         "goal_factor":2,
-        "exploration_reward":0
+        "exploration_reward":0,
+        "distance_reward":true
     },
     "algorithm":"A2C",
     "policy": "MlpPolicy",
