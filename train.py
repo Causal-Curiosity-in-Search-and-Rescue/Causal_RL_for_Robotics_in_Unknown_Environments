@@ -36,7 +36,7 @@ def make_env():
     return env
 
 def log_to_wandb(goal_reached,episode_count, current_step, cumulative_reward, cumulative_interactions,movable_interactions,non_movable_interactions, goal_reward,time_taken):
-    if 'summary_table' not in wandb.run.summary:
+    if 'results_table' not in wandb.run.summary:
         columns = ["goal_reached", "episode_count", "current_step","cumulative_reward", "cumulative_interactions", "movable_interactions","non_movable_interactions","goal_reward","time_taken"]
         wandb.run.summary['results_table'] = wandb.Table(columns=columns)
    
