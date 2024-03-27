@@ -5,7 +5,7 @@
         "num_immovable_objects":6,
         "num_start_pos":1,
         "grid_size":20,
-        "randomness":false,
+        "randomness":true,
         "max_steps":800,
         "save_map":true,
         "wall_penalty":1,
@@ -18,10 +18,10 @@
     "policy": "MlpPolicy",
     "total_timesteps": 10000,
     "wandb":{
-        "project":"[2D] Causal vs Non-Causal 10K 6_obj each no_exploration_reward",
+        "project":"[2D] Causal vs Non-Causal 10K 6_obj each no_exploration_reward use_distance_reward",
         "entity":"SR_GDP"
     },
-    "log_dir":"causal_exp_random_10K_6_obj_no_exploration_reward",
+    "log_dir":"causal_exp_random_10K_6_obj_no_exploration_reward_use_distance_reward",
     "inference":{
         "num_episodes":100,
         "map_path":"/home/julian/git-repo/juliangdz/CausalCuriosityGDP/Search_And_Rescue_2D/causal_experiment_logs/maze_plan.pkl",

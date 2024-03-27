@@ -43,8 +43,7 @@ def log_to_csv(cumulative_data,csv_file_path):
         mode = 'w' 
     else:
         mode = 'a'  
-
-    new_data_df = pd.DataFrame(cumulative_data, columns=columns)
+    new_data_df = pd.DataFrame([cumulative_data], columns=columns)
     
     if mode == 'w':
         new_data_df.to_csv(csv_file_path, mode=mode, index=False)
