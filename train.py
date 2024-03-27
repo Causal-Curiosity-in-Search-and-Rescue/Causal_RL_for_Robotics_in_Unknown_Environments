@@ -11,6 +11,7 @@ import numpy as np
 import gym 
 import os 
 import logging
+import pandas as pd 
 # Configure logging
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -36,14 +37,28 @@ def make_env():
     # env = gym.wrappers.RecordEpisodeStatistics(env)  # record stats such as returns
     return env
 
-def log_to_wandb(cumulative_data):
+def log_to_csv(cumulative_data,csv_file_path):
+    columns=["goal_reached", "episode_count", "current_step", "cumulative_reward", "cumulative_interactions", "movable_interactions", "non_movable_interactions", "goal_reward", "time_taken_for_episode"]
+    if not os.path.exists(csv_file_path):
+        mode = 'w' 
+    else:
+        mode = 'a'  
+
+    new_data_df = pd.DataFrame(cumulative_data, columns=columns)
+    
+    if mode == 'w':
+        new_data_df.to_csv(csv_file_path, mode=mode, index=False)
+    else:
+        new_data_df.to_csv(csv_file_path, mode=mode, index=False, header=False)
+
+def log_to_wandb(csv_file_path):
     columns = ["goal_reached", "episode_count", "current_step", "cumulative_reward", "cumulative_interactions", "movable_interactions", "non_movable_interactions", "goal_reward", "time_taken"]
-    
+    df = pd.read_csv(csv_file_path)
     results_table = wandb.Table(columns=columns)
-    for data in cumulative_data:
-        results_table.add_data(*data)
-    
+    for index, row in df.iterrows():
+        results_table.add_data(*row)
     wandb.log({"results_table": results_table})
+    
 
 config = {
     "model": CONFIG['algorithm'],
@@ -75,6 +90,7 @@ episode_count = 0
 sum_rewards = 0  
 start_timer = time.time()
 cumulative_data = []
+csv_file_path = os.path.join(log_dir,'results_summary.csv')
 
 for step in range(total_timesteps):
     action, _ = model.predict(obs)
@@ -84,7 +100,7 @@ for step in range(total_timesteps):
         episode_rewards.append(sum_rewards)  
         model.save(os.path.join(log_dir, f'final_model_{episode_count}.zip')) 
         if step >= CONFIG['environment']['max_steps'] - 1:
-            cumulative_data.append([
+            cumulative_data = [
                 info[0]["goal_reached"],
                 info[0]["episode_count"],
                 info[0]["current_step"],
@@ -94,9 +110,10 @@ for step in range(total_timesteps):
                 info[0]["non_movable_interactions"],
                 info[0]["goal_reward"],
                 time_taken_for_episode
-            ])
+            ]
+            log_to_csv(cumulative_data,csv_file_path)
         elif info[0]['goal_reached']:
-            cumulative_data.append([
+            cumulative_data = [
                 info[0]["goal_reached"],
                 info[0]["episode_count"],
                 info[0]["current_step"],
@@ -106,13 +123,14 @@ for step in range(total_timesteps):
                 info[0]["non_movable_interactions"],
                 info[0]["goal_reward"],
                 time_taken_for_episode
-            ])
+            ]
+            log_to_csv(cumulative_data,csv_file_path)
         episode_count += 1  
         # sum_rewards = 0  
         obs = env.reset()  
         start_timer = time.time()
         
-log_to_wandb(cumulative_data)
+log_to_wandb(csv_file_path)
 logging.info(f"Total episodes: {episode_count}")
 logging.info(f"Average reward: {np.mean(episode_rewards)}")
 logging.info(f"Best episode: {best_episode} with reward: {best_mean_reward}")
