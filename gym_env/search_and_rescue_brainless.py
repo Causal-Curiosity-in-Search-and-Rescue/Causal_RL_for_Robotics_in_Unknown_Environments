@@ -36,6 +36,7 @@ class SearchAndRescueNoCausalEnv(gym.Env):
         self.num_m =  ENV_CONFIG['num_movable_objects']
         self.num_i =  ENV_CONFIG['num_immovable_objects']
         self.num_s =  ENV_CONFIG['num_start_pos']
+        self.env_config = ENV_CONFIG
         if CONFIG['mode'] == 'train':
             self.MAP_PLAN,self.M_KB,self.U_KB = generate_maze_with_objects(self.grid_size[0],self.grid_size[1],self.num_m,self.num_i,self.num_s)
             if  ENV_CONFIG['save_map']:
@@ -209,17 +210,17 @@ class SearchAndRescueNoCausalEnv(gym.Env):
         goal_reached = False
         
         if next_cell_code in [self.wall_code,self.room_code]: # penalize for collision with wall and room
-            reward -= 1
+            reward -= self.env_config['wall_penalty']
             # done = True
         
         if self.robot_movement_state[tuple(next_pos)] == 1: # reward for new visits - promotes exploration
-            reward += 1
+            reward += self.env_config['exploration_reward']
         
         if next_cell_code == self.goal_code:  # reward for reaching goal
-            base_reward = 10
+            base_reward = self.env_config['goal_base_reward']
             remaining_steps_ratio = (self.max_steps - self.current_step) / self.max_steps
-            additional_reward = remaining_steps_ratio * 10
-            reward += min(base_reward + additional_reward, 20)
+            additional_reward = remaining_steps_ratio *  self.env_config['goal_base_reward']
+            reward += min(base_reward + additional_reward,  self.env_config['goal_base_reward'] *  self.env_config['goal_factor'])
             logging.info(f"[GOAL] Goal Reached @ {self.episode_count}")
             goal_reached = True
             done = True
@@ -265,7 +266,7 @@ class SearchAndRescueNoCausalEnv(gym.Env):
             wandb.log({"episode":self.episode_count,"cummulative_reward":self.cumulative_reward})
             self.episode_count += 1
         self.current_step += 1
-        return self.state, reward, done, {}
+        return self.state, reward, done, info
 
     def normalize_array(self,array):
         if np.max(array) == np.min(array):
