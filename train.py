@@ -97,21 +97,21 @@ for step in range(total_timesteps):
     if done:
         time_taken_for_episode = time.time() - start_timer
         episode_rewards.append(sum_rewards)  
-        model.save(os.path.join(log_dir, f'final_model_{episode_count}.zip')) 
-        if step >= CONFIG['environment']['max_steps'] - 1:
-            cumulative_data = [
-                info[0]["goal_reached"],
-                info[0]["episode_count"],
-                info[0]["current_step"],
-                info[0]["cumulative_reward"],
-                info[0]["cumulative_interactions"],
-                info[0]["movable_interactions"],
-                info[0]["non_movable_interactions"],
-                info[0]["goal_reward"],
-                time_taken_for_episode
-            ]
-            log_to_csv(cumulative_data,csv_file_path)
-        elif info[0]['goal_reached']:
+        # if step >= CONFIG['environment']['max_steps'] - 1:
+        #     cumulative_data = [
+        #         info[0]["goal_reached"],
+        #         info[0]["episode_count"],
+        #         info[0]["current_step"],
+        #         info[0]["cumulative_reward"],
+        #         info[0]["cumulative_interactions"],
+        #         info[0]["movable_interactions"],
+        #         info[0]["non_movable_interactions"],
+        #         info[0]["goal_reward"],
+        #         time_taken_for_episode
+        #     ]
+        #     log_to_csv(cumulative_data,csv_file_path)
+        if info[0]['goal_reached']:
+            model.save(os.path.join(log_dir, f'final_model_{episode_count}.zip')) 
             cumulative_data = [
                 info[0]["goal_reached"],
                 info[0]["episode_count"],

@@ -1,6 +1,6 @@
 {
     "environment":{
-        "name":"SearchAndRescueEnv-v0",
+        "name":"SearchAndRescueNoCausalEnv-v0",
         "num_movable_objects":6,
         "num_immovable_objects":6,
         "num_start_pos":1,
@@ -12,16 +12,16 @@
         "goal_base_reward":10,
         "goal_factor":2,
         "exploration_reward":0,
-        "distance_reward":true
+        "distance_reward":false
     },
     "algorithm":"A2C",
     "policy": "MlpPolicy",
-    "total_timesteps": 240000,
+    "total_timesteps": 2000000,
     "wandb":{
-        "project":"[2D] Causal vs Non-Causal 240K - use_distance_reward no_exploration_reward 6obj_each",
+        "project":"[2D] Causal vs Non-Causal 20M - no_distance_reward no_exploration_reward 6obj_each",
         "entity":"SR_GDP"
     },
-    "log_dir":"causal_exp_random_10K_6_obj_no_exploration_reward_use_distance_reward",
+    "log_dir":"non_causal_exp_20M_logs_no_distance_reward_no_exploration_reward_6obj_each",
     "inference":{
         "num_episodes":100,
         "map_path":"/home/julian/git-repo/juliangdz/CausalCuriosityGDP/Search_And_Rescue_2D/causal_experiment_logs/maze_plan.pkl",
