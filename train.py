@@ -89,7 +89,7 @@ sum_rewards = 0
 start_timer = time.time()
 cumulative_data = []
 csv_file_path = os.path.join(log_dir,'results_summary.csv')
-eval_interval = total_timesteps // config['eval_interval']
+eval_interval = total_timesteps // CONFIG['eval_interval']
 
 for step in range(total_timesteps):
     action, _ = model.predict(obs)
@@ -115,7 +115,7 @@ for step in range(total_timesteps):
         obs = env.reset()  
         start_timer = time.time()
     if (step + 1) % eval_interval == 0 or step == total_timesteps - 1:
-        mean_reward, std_reward = evaluate_policy(model, env, n_eval_episodes=config['eval_episodes'],deterministic=False)
+        mean_reward, std_reward = evaluate_policy(model, env, n_eval_episodes=CONFIG['eval_episodes'],deterministic=False)
         logging.info(f"Evaluation at step {step+1}: mean reward = {mean_reward}, std. dev. = {std_reward}")
         wandb.log({
             "Eval/mean_reward": mean_reward,
