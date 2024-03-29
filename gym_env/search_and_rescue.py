@@ -251,9 +251,9 @@ class SearchAndRescueEnv(gym.Env):
         return reward,done,goal_reached
     
     def log_interactions(self): # will log interactions per episode
-        wandb.log({"Train/immovable_interactions":self.cumulative_immovable_interactions,"Train/episode":self.episode_count,"Train/step":self.current_step})
-        wandb.log({"Train/movable_interactions":self.cumulative_movable_interactions,"Train/episode":self.episode_count,"Train/step":self.current_step})
-        wandb.log({"Train/cumulative_interactions":sum([self.cumulative_movable_interactions,self.cumulative_immovable_interactions]),"Train/episode":self.episode_count,"Train/step":self.current_step})
+        wandb.log({"immovable_interactions":self.cumulative_immovable_interactions,"episode":self.episode_count,"step":self.current_step})
+        wandb.log({"movable_interactions":self.cumulative_movable_interactions,"episode":self.episode_count,"step":self.current_step})
+        wandb.log({"cumulative_interactions":sum([self.cumulative_movable_interactions,self.cumulative_immovable_interactions]),"episode":self.episode_count,"step":self.current_step})
             
     def step(self, action):
         done = False
@@ -263,8 +263,8 @@ class SearchAndRescueEnv(gym.Env):
         reward,done,goal_reached = self.calculate_reward(next_pos,cell_code)
         self.translate_action(action,self.robot_pos,next_pos,cell_code)
         self.cumulative_reward += reward        
-        wandb.log({"Train/episode":self.episode_count,"Train/step":self.current_step})
-        wandb.log({"Train/step":self.current_step,"Train/reward":reward,"Train/episode":self.episode_count})
+        wandb.log({"episode":self.episode_count,"step":self.current_step})
+        wandb.log({"step":self.current_step,"reward":reward,"episode":self.episode_count})
         info = {
             "goal_reached":goal_reached,
             "episode_count": self.episode_count,
@@ -278,7 +278,7 @@ class SearchAndRescueEnv(gym.Env):
         logging.info(f"-EPISODE:{self.episode_count} @ STEP:{self.current_step}- Reward : {reward}")
         if done:
             self.log_interactions()
-            wandb.log({"Train/episode":self.episode_count,"Train/cummulative_reward":self.cumulative_reward})
+            wandb.log({"episode":self.episode_count,"cummulative_reward":self.cumulative_reward})
             self.episode_count += 1
         
         self.current_step += 1

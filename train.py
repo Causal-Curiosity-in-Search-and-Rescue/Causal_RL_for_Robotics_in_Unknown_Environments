@@ -20,6 +20,22 @@ logger = logging.getLogger(__name__)
 from utils.helper import read_config,check_and_create_directory
 import argparse
 import pdb
+from contextlib import contextmanager
+
+@contextmanager
+def prefixed_wandb_log(prefix):
+    original_log = wandb.log
+    
+    # Override wandb.log to prepend the prefix
+    def modified_log(data, *args, **kwargs):
+        prefixed_data = {f"{prefix}/{k}": v for k, v in data.items()}
+        original_log(prefixed_data, *args, **kwargs)
+    
+    wandb.log = modified_log
+    try:
+        yield
+    finally:
+        wandb.log = original_log
 
 parser = argparse.ArgumentParser()
 parser.add_argument('config_path',type=str,help='Config Path',default='config.json')
@@ -92,37 +108,37 @@ csv_file_path = os.path.join(log_dir,'results_summary.csv')
 eval_interval = total_timesteps // CONFIG['eval_interval']
 
 for step in range(total_timesteps):
-    action, _ = model.predict(obs)
-    obs, reward, done, info = env.step(action)
-    if done:
-        time_taken_for_episode = time.time() - start_timer
-        episode_rewards.append(sum_rewards)  
-        if info[0]['goal_reached']:
-            cumulative_data = [
-                info[0]["goal_reached"],
-                info[0]["episode_count"],
-                info[0]["current_step"],
-                info[0]["cumulative_reward"],
-                info[0]["cumulative_interactions"],
-                info[0]["movable_interactions"],
-                info[0]["non_movable_interactions"],
-                info[0]["goal_reward"],
-                time_taken_for_episode
-            ]
-            log_to_csv(cumulative_data,csv_file_path)
-        episode_count += 1  
-        # sum_rewards = 0  
-        obs = env.reset()  
-        start_timer = time.time()
+    with prefixed_wandb_log("Train"):
+        logging.info(f'- Training: {step}/{total_timesteps} @ episode {episode_count} -')
+        action, _ = model.predict(obs,deterministic=False)
+        obs, reward, done, info = env.step(action)
+        if done:
+            time_taken_for_episode = time.time() - start_timer
+            episode_rewards.append(sum_rewards)  
+            if info[0]['goal_reached']:
+                cumulative_data = [
+                    info[0]["goal_reached"],
+                    info[0]["episode_count"],
+                    info[0]["current_step"],
+                    info[0]["cumulative_reward"],
+                    info[0]["cumulative_interactions"],
+                    info[0]["movable_interactions"],
+                    info[0]["non_movable_interactions"],
+                    info[0]["goal_reward"],
+                    time_taken_for_episode
+                ]
+                log_to_csv(cumulative_data,csv_file_path)
+            episode_count += 1  
+            # sum_rewards = 0  
+            obs = env.reset()  
+            start_timer = time.time()
     if (step + 1) % eval_interval == 0 or step == total_timesteps - 1:
-        mean_reward, std_reward = evaluate_policy(model, env, n_eval_episodes=CONFIG['eval_episodes'],deterministic=False)
-        logging.info(f"Evaluation at step {step+1}: mean reward = {mean_reward}, std. dev. = {std_reward}")
-        wandb.log({
-            "Eval/mean_reward": mean_reward,
-            "Eval/std_reward": std_reward,
-            "step": step + 1
-        })
-        model.save(os.path.join(log_dir,f"final_model_{step+1}.zip"))
+        with prefixed_wandb_log("Eval"):
+            mean_reward, std_reward = evaluate_policy(model, env, n_eval_episodes=CONFIG['eval_episodes'],deterministic=False)
+            logging.info(f"Evaluation at step {step+1}: mean reward = {mean_reward}, std. dev. = {std_reward}")
+            wandb.log({"mean_reward":mean_reward,"eval_step":step+1})
+            wandb.log({"std_reward":std_reward,"eval_step":step+1})
+            model.save(os.path.join(log_dir,f"final_model_{step+1}.zip"))
     
     
         
