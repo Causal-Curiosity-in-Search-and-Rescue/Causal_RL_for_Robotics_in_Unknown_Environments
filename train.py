@@ -195,7 +195,7 @@ def train_and_evaluate(CONFIG):
                         ]
                         log_to_csv(cumulative_data,train_csv_file_path)
                     
-                    obs[i] = env.reset(index=i)
+                    # obs[i] = env.reset(index=i)
         
         # Evaluation Mode
         if (step + 1) % eval_interval == 0 or step == total_timesteps - 1:
