@@ -180,17 +180,17 @@ def train_and_evaluate(CONFIG):
                     collected_dictionary["goal_reached"].append(info["goal_reached"])
                     collected_dictionary["time_taken_per_episode"].append(time_taken_for_episode)
                     
-                    if info[i]['goal_reached']:
+                    if info['goal_reached']:
                         cumulative_data = [
                             i,
-                            info[i]["goal_reached"],
-                            info[i]["episode_count"],
-                            info[i]["current_step"],
-                            info[i]["cumulative_reward"],
-                            info[i]["cumulative_interactions"],
-                            info[i]["movable_interactions"],
-                            info[i]["non_movable_interactions"],
-                            info[i]["goal_reward"],
+                            info["goal_reached"],
+                            info["episode_count"],
+                            info["current_step"],
+                            info["cumulative_reward"],
+                            info["cumulative_interactions"],
+                            info["movable_interactions"],
+                            info["non_movable_interactions"],
+                            info["goal_reward"],
                             time_taken_for_episode
                         ]
                         log_to_csv(cumulative_data,train_csv_file_path)
