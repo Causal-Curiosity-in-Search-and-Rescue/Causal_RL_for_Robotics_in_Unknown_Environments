@@ -1,6 +1,7 @@
 {
     "environment":{
         "name":"SearchAndRescueEnv-v0",
+        "num_parallel_env":10,
         "num_movable_objects":12,
         "num_immovable_objects":12,
         "num_start_pos":1,
@@ -17,13 +18,14 @@
     "algorithm":"A2C",
     "policy": "MlpPolicy",
     "total_timesteps": 20000000,
-    "eval_interval":5,
-    "eval_episodes":300,
+    "eval_interval":200,
+    "log_interval":400,
+    "eval_episodes":10,
     "wandb":{
-        "project":"[2D] Causal vs Non-Causal 20M - only_goal_reward 12obj_each",
+        "project":"[2D] Causal vs Non Causal 20M only_goal env_5 12_obj_each",
         "entity":"SR_GDP"
     },
-    "log_dir":"causal_exp_20M_logs_only_goal_reward_12obj_each",
+    "log_dir":"causal_exp_20M_logs_only_goal_env_5_reward_12obj_each",
     "inference":{
         "num_episodes":100,
         "interval":10,

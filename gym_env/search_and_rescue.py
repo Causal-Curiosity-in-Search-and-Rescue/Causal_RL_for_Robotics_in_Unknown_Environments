@@ -10,7 +10,7 @@ import copy
 import os 
 import pickle
 from utils.helper import generate_maze_with_objects,visualisemaze,check_and_create_directory,read_config,load_saved_map
-import wandb
+# import wandb
 import logging
 import math
 import pdb
@@ -250,10 +250,10 @@ class SearchAndRescueEnv(gym.Env):
         
         return reward,done,goal_reached
     
-    def log_interactions(self): # will log interactions per episode
-        wandb.log({"immovable_interactions":self.cumulative_immovable_interactions,"episode":self.episode_count,"step":self.current_step})
-        wandb.log({"movable_interactions":self.cumulative_movable_interactions,"episode":self.episode_count,"step":self.current_step})
-        wandb.log({"cumulative_interactions":sum([self.cumulative_movable_interactions,self.cumulative_immovable_interactions]),"episode":self.episode_count,"step":self.current_step})
+    # def log_interactions(self): # will log interactions per episode
+    #     wandb.log({"immovable_interactions":self.cumulative_immovable_interactions,"episode":self.episode_count,"step":self.current_step})
+    #     wandb.log({"movable_interactions":self.cumulative_movable_interactions,"episode":self.episode_count,"step":self.current_step})
+    #     wandb.log({"cumulative_interactions":sum([self.cumulative_movable_interactions,self.cumulative_immovable_interactions]),"episode":self.episode_count,"step":self.current_step})
             
     def step(self, action):
         done = False
@@ -263,8 +263,8 @@ class SearchAndRescueEnv(gym.Env):
         reward,done,goal_reached = self.calculate_reward(next_pos,cell_code)
         self.translate_action(action,self.robot_pos,next_pos,cell_code)
         self.cumulative_reward += reward        
-        wandb.log({"episode":self.episode_count,"step":self.current_step})
-        wandb.log({"step":self.current_step,"reward":reward,"episode":self.episode_count})
+        # wandb.log({"episode":self.episode_count,"step":self.current_step})
+        # wandb.log({"step":self.current_step,"reward":reward,"episode":self.episode_count})
         info = {
             "goal_reached":goal_reached,
             "episode_count": self.episode_count,
@@ -277,8 +277,8 @@ class SearchAndRescueEnv(gym.Env):
         }
         logging.info(f"-EPISODE:{self.episode_count} @ STEP:{self.current_step}- Reward : {reward}")
         if done:
-            self.log_interactions()
-            wandb.log({"episode":self.episode_count,"cummulative_reward":self.cumulative_reward})
+            # self.log_interactions()
+            # wandb.log({"episode":self.episode_count,"cummulative_reward":self.cumulative_reward})
             self.episode_count += 1
         
         self.current_step += 1
