@@ -1,0 +1,2 @@
+env_id,goal_reached,episode_count,current_step,cumulative_reward,cumulative_interactions,movable_interactions,non_movable_interactions,goal_reward,time_taken_for_episode
+1,True,0,64,19.200000000000003,4,4,0,19.200000000000003,1.234452247619629
