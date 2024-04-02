@@ -50,14 +50,8 @@ if __name__ == '__main__':
     CONFIG = read_config(args.config_path)
     log_dir = check_and_create_directory(os.path.join(os.getcwd(),CONFIG['log_dir']))
     
-    config = {
-        "model": CONFIG['algorithm'],
-        "policy":CONFIG['policy'],
-        "timesteps":CONFIG['total_timesteps'],
-        "env":CONFIG["environment"]["name"]
-    }
     wandb.init(
-        config=config,
+        config=CONFIG,
         entity=CONFIG['wandb']['entity'],
         project=CONFIG['wandb']['project'],
         monitor_gym=True,       # automatically upload gym environements' videos
