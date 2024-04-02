@@ -6,6 +6,7 @@ from utils.wandb_context import prefixed_wandb_log
 from utils.evaluate import evaluate
 from utils.helper import read_config
 import pdb
+import numpy as np
 
 class MetricsCallback(BaseCallback):
     
@@ -33,10 +34,10 @@ class MetricsCallback(BaseCallback):
         self.eval_csv_file_path = os.path.join(os.getcwd(),self.CONFIG["log_dir"],'eval_results_summary.csv')
 
     def _on_training_start(self):
-        num_envs = self.model.env.num_envs
-        self.episode_counts = [0] * num_envs
-        self.current_episode_rewards = [0.0] * num_envs
-        self.current_episode_lengths = [0] * num_envs
+        self.num_envs = self.model.env.num_envs
+        self.episode_counts = [0] * self.num_envs
+        self.current_episode_rewards = [0.0] * self.num_envs
+        self.current_episode_lengths = [0] * self.num_envs
     
     def _on_step(self) -> bool:
         rewards = self.locals['rewards']
@@ -68,7 +69,11 @@ class MetricsCallback(BaseCallback):
                     info["time_taken_per_episode"]
                 ]
                 log_to_csv(cumulative_data,self.train_csv_file_path)
-                
+
+        for i in range(len(dones)):
+            if np.sum(dones[i]) == self.num_envs: 
+                self.model.env.reset()
+
         with prefixed_wandb_log("Train"):
             if (step + 1) % self.log_interval == 0 or step == self.total_timesteps - 1:
                 log_aggregate_stats(self.collected_dictionary,key="cumulative_reward",log_string="cumulative_reward",step=step+1)

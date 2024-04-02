@@ -29,8 +29,26 @@ def train_and_evaluate(CONFIG):
     env_ids = [CONFIG["environment"]["name"]] * num_envs
     envs = [make_env(env_id) for env_id in env_ids]
     env = SubprocVecEnv(envs)
-   
-    model = A2C(CONFIG['policy'], env, verbose=1) 
+    
+    env.reset()
+
+    # A2C specific hyperparams from config
+    a2c_hyperparams = CONFIG['A2C_hyperparameters']
+
+    # setup adam optimizer params
+    optimizer_eps = a2c_hyperparams.get('optimizer_parameters',{}).get('eps')
+
+    model = A2C(CONFIG['policy'], env, verbose=1,
+        learning_rate = a2c_hyperparams['learning_rate'],
+        gamma = a2c_hyperparams['gamma'],
+        n_steps = a2c_hyperparams['n_steps'],
+        ent_coef = a2c_hyperparams['ent_coef'],
+        vf_coef = a2c_hyperparams['vf_coef'],
+        max_grad_norm = a2c_hyperparams['max_grad_norm'],
+        policy_kwargs = {"optimizer_kwargs":{"eps":optimizer_eps}}
+        ) 
+
+    #model = A2C(CONFIG['policy'], env, verbose=1) 
 
     total_timesteps = CONFIG['total_timesteps'] 
     model.set_env(env=env)

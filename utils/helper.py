@@ -95,13 +95,13 @@ def place_array_in_middle(maze):
     middle_col = len(maze[0]) // 2
  
     array_to_place = [
-        ['u','u', 'u', 'u', 'u', 'u', 'u','u'],
-        ['u','u', 'r', 'r', 'r', 'r', 'r','u'],
-        ['u','u', 'r', 'u', 'o', 'u', 'r','u'],
-        ['u','u', 'm', 'u', 'u', 'u', 'i','u'],
-        ['u','u', 'r', 'u', 'u', 'u', 'r','u'],
-        ['u','u', 'r', 'r', 'r', 'r', 'r','u'],
-        ['u','u', 'u', 'u', 'u', 'u', 'u','u']
+        ['u', 'u', 'u', 'u', 'u', 'u','u'],
+        ['u', 'r', 'm', 'm', 'm', 'r','u'],
+        ['u', 'm', 'u', 'o', 'u', 'm','u'],
+        ['u', 'm', 'u', 'u', 'u', 'm','u'],
+        ['u', 'm', 'u', 'u', 'u', 'm','u'],
+        ['u', 'r', 'm', 'm', 'm', 'r','u'],
+        ['u', 'u', 'u', 'u', 'u', 'u','u']
     ]
  
     for i in range(len(array_to_place)):

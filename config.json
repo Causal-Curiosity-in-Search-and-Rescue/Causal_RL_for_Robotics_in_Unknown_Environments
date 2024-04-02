@@ -1,11 +1,11 @@
 {
     "environment":{
         "name":"SearchAndRescueEnv-v0",
-        "num_parallel_env":2,
-        "num_movable_objects":2,
-        "num_immovable_objects":2,
+        "num_parallel_env":20,
+        "num_movable_objects":0,
+        "num_immovable_objects":12,
         "num_start_pos":1,
-        "grid_size":20,
+        "grid_size":16,
         "randomness":true,
         "max_steps":800,
         "save_map":false,
@@ -13,24 +13,37 @@
         "goal_base_reward":10,
         "goal_factor":2,
         "exploration_reward":0,
-        "distance_reward":false
+        "distance_reward":false,
+        "imm_penalty":0
     },
     "algorithm":"A2C",
     "policy": "MlpPolicy",
-    "total_timesteps": 2000,
+    "total_timesteps": 200000,
     "eval_interval":200,
     "log_interval":400,
     "eval_episodes":10,
     "wandb":{
-        "project":"[2D] testing causal",
+        "project":"[2D] sam_3",
         "entity":"SR_GDP"
     },
+    "A2C_hyperparameters": {
+        "gamma":0.995,
+        "n_steps": 128,
+        "ent_coef":0.02,
+        "vf_coef":0.5,
+        "max_grad_norm":1,
+        "learning_rate": 0.0003,
+        "optimizer_parameters":{
+            "eps":1e-7
+            }
+        },
+
     "log_dir":"testing",
     "inference":{
         "num_episodes":100,
         "interval":10,
-        "map_path":"/home/julian/git-repo/juliangdz/CausalCuriosityGDP/Search_And_Rescue_2D/causal_experiment_logs/maze_plan.pkl",
-        "model_path":"/home/julian/git-repo/juliangdz/CausalCuriosityGDP/Search_And_Rescue_2D/causal_experiment_logs/causal_model_8.zip"
+        "map_path":"/repos/Search_And_Rescue_2D/causal_experiment_logs/maze_plan.pkl",
+        "model_path":"/repos/Search_And_Rescue_2D/causal_experiment_logs/causal_model_8.zip"
     },
     "mode":"train"
 }
