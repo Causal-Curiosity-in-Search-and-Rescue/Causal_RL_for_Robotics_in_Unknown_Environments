@@ -135,7 +135,7 @@ class SearchAndRescueEnv(gym.Env):
         self.digital_map[tuple(next_pos)] = self.robot_code
     
     def update_robot_movement_state(self, old_pos, new_pos, cell_code):
-        logging.info(f'-| Updating Robot Movement State : {old_pos} -> {new_pos} |  FOV CODE : {cell_code} |-')
+        # logging.info(f'-| Updating Robot Movement State : {old_pos} -> {new_pos} |  FOV CODE : {cell_code} |-')
         
         if tuple(old_pos) != tuple(new_pos):
             self.robot_movement_state[tuple(new_pos)] += 1
@@ -278,7 +278,7 @@ class SearchAndRescueEnv(gym.Env):
             "goal_reward":reward,
             "time_taken_per_episode": time.time()-self.start_timer
         }
-        logging.info(f"-EPISODE:{self.episode_count} @ STEP:{self.current_step}- Reward : {reward}")
+        # logging.info(f"-EPISODE:{self.episode_count} @ STEP:{self.current_step}- Reward : {reward}")
         if done:
             # self.log_interactions()
             # wandb.log({"episode":self.episode_count,"cummulative_reward":self.cumulative_reward})

@@ -25,15 +25,15 @@ def log_results_table_to_wandb(csv_file_path,prefix='Train'):
         results_table.add_data(*row)
     wandb.log({f"{prefix}/results_table": results_table})
     
-# def calculate_aggregate_stats(infos,key):
-#     _mean = np.array([ info[i][key] for i, info in enumerate(infos)]).mean()
-#     _std = np.array([ info[i][key] for i, info in enumerate(infos)]).std()
-#     return _mean,_std
+def calculate_aggregate_stats(infos,key):
+    _mean = np.array([ info[i][key] for i, info in enumerate(infos)]).mean()
+    _std = np.array([ info[i][key] for i, info in enumerate(infos)]).std()
+    return _mean,_std
 
-# def log_aggregate_stats(infos,key,log_string,step):
-#     _mean ,_std = calculate_aggregate_stats(infos,key)
-#     wandb.log({f"mean_{log_string}":_mean,"step":step + 1})
-#     wandb.log({f"std_c{log_string}":_std,"step":step + 1})
+def log_aggregate_stats(infos,key,log_string,step):
+    _mean ,_std = calculate_aggregate_stats(infos,key)
+    wandb.log({f"mean_{log_string}":_mean,"step":step + 1})
+    wandb.log({f"std_c{log_string}":_std,"step":step + 1})
     
 def calculate_aggregate_stats(arr):
     _mean = np.array(arr).mean()

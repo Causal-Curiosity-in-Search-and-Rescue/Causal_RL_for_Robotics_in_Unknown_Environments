@@ -75,14 +75,14 @@ class MetricsCallback(BaseCallback):
                 self.model.env.reset()
 
         with prefixed_wandb_log("Train"):
-            if (step + 1) % self.log_interval == 0 or step == self.total_timesteps - 1:
-                log_aggregate_stats(self.collected_dictionary,key="cumulative_reward",log_string="cumulative_reward",step=step+1)
-                log_aggregate_stats(self.collected_dictionary,key="cumulative_interactions",log_string="cumulative_interactions",step=step+1)
-                log_aggregate_stats(self.collected_dictionary,key="movable_interactions",log_string="movable_interactions",step=step+1)
-                log_aggregate_stats(self.collected_dictionary,key="non_movable_interactions",log_string="non_movable_interactions",step=step+1)
-                log_aggregate_stats(self.collected_dictionary,key="goal_reward",log_string="goal_reward",step=step+1)
-                log_aggregate_stats(self.collected_dictionary,key="goal_reached",log_string="goal_reached",step=step+1)
-                log_aggregate_stats(self.collected_dictionary,key="time_taken_per_episode",log_string="time_taken_per_episode",step=step+1)
+            if (step) % self.log_interval == 0 or step == self.total_timesteps - 1:
+                log_aggregate_stats(self.collected_dictionary,key="cumulative_reward",log_string="cumulative_reward",step=step)
+                log_aggregate_stats(self.collected_dictionary,key="cumulative_interactions",log_string="cumulative_interactions",step=step)
+                log_aggregate_stats(self.collected_dictionary,key="movable_interactions",log_string="movable_interactions",step=step)
+                log_aggregate_stats(self.collected_dictionary,key="non_movable_interactions",log_string="non_movable_interactions",step=step)
+                log_aggregate_stats(self.collected_dictionary,key="goal_reward",log_string="goal_reward",step=step)
+                log_aggregate_stats(self.collected_dictionary,key="goal_reached",log_string="goal_reached",step=step)
+                log_aggregate_stats(self.collected_dictionary,key="time_taken_per_episode",log_string="time_taken_per_episode",step=step)
                 self.collected_dictionary = {
                     "cumulative_reward":[],
                     "cumulative_interactions":[],
@@ -94,9 +94,9 @@ class MetricsCallback(BaseCallback):
                 }
         
         with prefixed_wandb_log("Eval"):
-            if (step + 1) % self.eval_interval == 0 or step == self.total_timesteps - 1:
-                evaluate(self.model,self.CONFIG,step+1,self.eval_csv_file_path)
-                self.model.save(os.path.join(os.getcwd(),self.CONFIG["log_dir"],f"final_model_{step+1}.zip"))
+            if (step) % self.eval_interval == 0 or step == self.total_timesteps - 1:
+                evaluate(self.model,self.CONFIG,step,self.eval_csv_file_path)
+                self.model.save(os.path.join(os.getcwd(),self.CONFIG["log_dir"],f"final_model_{step}.zip"))
         
         return True
 
