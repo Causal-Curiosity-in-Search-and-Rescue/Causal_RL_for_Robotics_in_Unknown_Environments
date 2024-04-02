@@ -70,9 +70,9 @@ class MetricsCallback(BaseCallback):
                 ]
                 log_to_csv(cumulative_data,self.train_csv_file_path)
 
-        for i in range(len(dones)):
-            if np.sum(dones[i]) == self.num_envs: 
-                self.model.env.reset()
+        # for i in range(len(dones)):
+        #     if np.sum(dones[i]) == self.num_envs: 
+        #         self.model.env.reset()
 
         with prefixed_wandb_log("Train"):
             if (step) % self.log_interval == 0 or step == self.total_timesteps - 1:

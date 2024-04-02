@@ -228,7 +228,11 @@ class SearchAndRescueEnv(gym.Env):
         
         if self.robot_movement_state[tuple(next_pos)] == 1: # reward for new visits - promotes exploration
             reward += self.env_config['exploration_reward']
-        
+
+        if next_cell_code in [self.non_movable_code]: # penalize for collision with immovable objects
+            reward -= self.env_config['imm_penalty']
+            # done = True
+            
         if next_cell_code == self.goal_code:  # reward for reaching goal
             base_reward = self.env_config['goal_base_reward']
             remaining_steps_ratio = (self.max_steps - self.current_step) / self.max_steps
