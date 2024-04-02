@@ -80,6 +80,7 @@ class SearchAndRescueEnv(gym.Env):
         self.environment_setup['robot_pos'] = self.get_robot_position()
 
     def reset(self):
+        self.start_timer = time.time()
         if self.use_random:
             self.MAP_PLAN,self.M_KB,self.U_KB = generate_maze_with_objects(self.grid_size[0],self.grid_size[1],self.num_m,self.num_i,self.num_s)
             if  self.env_config['save_map']:
@@ -266,6 +267,7 @@ class SearchAndRescueEnv(gym.Env):
         # wandb.log({"episode":self.episode_count,"step":self.current_step})
         # wandb.log({"step":self.current_step,"reward":reward,"episode":self.episode_count})
         info = {
+            "episode_ended":done,
             "goal_reached":goal_reached,
             "episode_count": self.episode_count,
             "current_step":self.current_step,
@@ -273,7 +275,8 @@ class SearchAndRescueEnv(gym.Env):
             "cumulative_interactions":sum([self.cumulative_movable_interactions,self.cumulative_immovable_interactions]),
             "movable_interactions":self.cumulative_movable_interactions,
             "non_movable_interactions":self.cumulative_immovable_interactions,
-            "goal_reward":reward
+            "goal_reward":reward,
+            "time_taken_per_episode": time.time()-self.start_timer
         }
         logging.info(f"-EPISODE:{self.episode_count} @ STEP:{self.current_step}- Reward : {reward}")
         if done:
