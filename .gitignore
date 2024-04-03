@@ -160,3 +160,6 @@ wandb/
 #.idea/
 causal_exp_*
 non_causal_exp_*
+*.zip
+third_eye*
+testing*

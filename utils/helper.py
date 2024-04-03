@@ -6,28 +6,29 @@ import copy
 import random
 import matplotlib.pyplot as plt
 
-def generate_maze_with_objects( height, width, num_m, num_i,num_s):
-    maze1 = generate_maze(height,width)
+def generate_maze_with_objects(height, width, num_00, num_01,num_10,num_11,num_s,CONFIG):
+    maze1 = generate_maze(height,width,CONFIG)
     maze = copy.deepcopy(maze1)
- 
+
     # Generate random positions for 'm'
-    for _ in range(num_m):
-        while True:
-            row = random.randint(1, height - 2)
-            col = random.randint(1, width - 2)
-            if maze[row][col] == 'c':
-                maze[row][col] = 'm'
-                break
+    # for _ in range(num_m):
+    #     while True:
+    #         row = random.randint(1, height - 2)
+    #         col = random.randint(1, width - 2)
+    #         if maze[row][col] == 'c':
+    #             maze[row][col] = 'm'
+    #             break
  
-    # Generate random positions for 'i'
-    for _ in range(num_i):
-        while True:
-            row = random.randint(1, height - 2)
-            col = random.randint(1, width - 2)
-            if maze[row][col] == 'c':
-                maze[row][col] = 'i'
-                break
-    # Generate random positions for 's'
+    # # Generate random positions for 'i'
+    # for _ in range(num_i):
+    #     while True:
+    #         row = random.randint(1, height - 2)
+    #         col = random.randint(1, width - 2)
+    #         if maze[row][col] == 'c':
+    #             maze[row][col] = 'i'
+    #             break
+
+    # Generate random positions for 's' Start position
     for _ in range(num_s):
         while True:
             row = random.randint(1, height - 2)
@@ -35,15 +36,59 @@ def generate_maze_with_objects( height, width, num_m, num_i,num_s):
             if maze[row][col] == 'c':
                 maze[row][col] = 's'
                 break
+
+    ##  Generating Positions for Third variable
+    # Generate random positions for '00' [Texture 0, Shape 0]
+    for _ in range(num_00):
+        while True:
+            row = random.randint(1, height - 2)
+            col = random.randint(1, width - 2)
+            if maze[row][col] == 'c':
+                maze[row][col] = '00'
+                break
     
-    m_kb_array = convert_to_movable_knowledge_array(maze)
-    u_kb_array = convert_to_no_movable_knowledge_array(maze)
+    # Generate random positions for '01' [Texture 0, Shape 1]
+    for _ in range(num_01):
+        while True:
+            row = random.randint(1, height - 2)
+            col = random.randint(1, width - 2)
+            if maze[row][col] == 'c':
+                maze[row][col] = '01'
+                break
+    # Generate random positions for '10' [Texture 1, Shape 0]
+    for _ in range(num_10):
+        while True:
+            row = random.randint(1, height - 2)
+            col = random.randint(1, width - 2)
+            if maze[row][col] == 'c':
+                maze[row][col] = '10'
+                break
+    
+    # Generate random positions for '11' [Texture 1, Shape 1]
+    for _ in range(num_11):
+        while True:
+            row = random.randint(1, height - 2)
+            col = random.randint(1, width - 2)
+            if maze[row][col] == 'c':
+                maze[row][col] = '11'
+                break
+    
+    mkb = CONFIG['environment']['env_codes']['mkb']
+    ukb = CONFIG['environment']['env_codes']['ukb']
+    
+    m_kb_array = convert_to_movable_knowledge_array(maze,mkb)
+    u_kb_array = convert_to_no_movable_knowledge_array(maze,ukb)
     
     return maze,m_kb_array,u_kb_array
 
-def convert_to_movable_knowledge_array(lst):
+def convert_to_movable_knowledge_array(lst,mapping):
+    
     # Define a mapping for replacement
-    mapping = {'w': 0, 'u': 1, 'c': 1, 'm': 2, 'i': 3, 'r': 4, 's': 5, 'o': 6}
+    #OLD METHOD
+    #mapping = {'w': 0, 'u': 1, 'c': 1, 'm': 2, 'i': 3, 'r': 0, 's': 5, 'o': 6}
+
+    #NEW METHOD
+    #mapping = {"w":0,"u":1,"c":1,"00":2,"01":3,"10":4,"11":5,"r":0, "s":6,"o":7}
     
     # Replace each element in the list according to the mapping
     replaced_list = [[mapping[item] for item in sublist] for sublist in lst]
@@ -51,9 +96,11 @@ def convert_to_movable_knowledge_array(lst):
     # Convert the list to a numpy array
     return np.array(replaced_list,dtype=np.int32)
 
-def convert_to_no_movable_knowledge_array(lst):
+def convert_to_no_movable_knowledge_array(lst,mapping):
+
+
     # Define a mapping for replacement
-    mapping = {'w': 0, 'u': 1, 'c': 1, 'm': 2, 'i': 2, 'r': 4, 's': 5, 'o': 6}
+    #mapping = {'w': 0, 'u': 1, 'c': 1, 'm': 2, 'i': 2, 'r': 0, 's': 5, 'o': 6}
     
     # Replace each element in the list according to the mapping
     replaced_list = [[mapping[item] for item in sublist] for sublist in lst]
@@ -78,9 +125,12 @@ def visualisemaze(maze,log_dir):
     # plt.show(block=False)
     plt.savefig(os.path.join(log_dir,'2d_test_env.png'))
     
-def generate_maze(height, width):
+def generate_maze(height, width,CONFIG):
     maze = [['w' if i == 0 or i == height - 1 or j == 0 or j == width - 1 else 'c' for j in range(width)] for i in range(height)]
-    maze_with_array = place_array_in_middle(maze)
+    if CONFIG["environment"]["random_room_pos"]:
+        maze_with_array = place_array_random(maze,CONFIG)
+    else:
+        maze_with_array = place_array_in_middle(maze,CONFIG)
     maze_with_u = place_u_near_walls(maze_with_array)
     return maze_with_u
 
@@ -90,26 +140,34 @@ def load_saved_map(map_path):
     
     return map_plan,convert_to_movable_knowledge_array(map_plan),convert_to_no_movable_knowledge_array(map_plan)
  
-def place_array_in_middle(maze):
+
+def place_array_random(maze,CONFIG):
+
+    array_to_place = CONFIG["environment"]["env_codes"]["room_array"]
+    room_arr_np = np.array(array_to_place)
+    room_shape = room_arr_np.shape[0]
+    start_row = np.random.randint(2,CONFIG['environment']['grid_size'] - room_shape+2)
+    start_col = np.random.randint(2,CONFIG['environment']['grid_size'] - room_shape+2)
+
+    for i in range(room_shape - 2):
+        for j in range(room_shape -2):
+            maze[start_row + i][start_col + j] = array_to_place[i][j]
+
+    return maze
+
+def place_array_in_middle(maze,CONFIG):
+
     middle_row = len(maze) // 2
     middle_col = len(maze[0]) // 2
  
-    array_to_place = [
-        ['u', 'u', 'u', 'u', 'u', 'u','u'],
-        ['u', 'r', 'i', 'm', 'i', 'r','u'],
-        ['u', 'i', 'u', 'o', 'u', 'i','u'],
-        ['u', 'm', 'u', 'u', 'u', 'm','u'],
-        ['u', 'i', 'u', 'u', 'u', 'i','u'],
-        ['u', 'r', 'i', 'm', 'i', 'r','u'],
-        ['u', 'u', 'u', 'u', 'u', 'u','u']
-    ]
+    array_to_place = CONFIG["environment"]["env_codes"]["room_array"]
  
     for i in range(len(array_to_place)):
         for j in range(len(array_to_place[0])):
             maze[middle_row - 2 + i][middle_col - 3 + j] = array_to_place[i][j]
  
     return maze
- 
+
 def place_u_near_walls(maze):
     height = len(maze)
     width = len(maze[0])

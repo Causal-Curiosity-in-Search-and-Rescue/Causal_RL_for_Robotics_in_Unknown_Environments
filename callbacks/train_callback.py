@@ -32,6 +32,7 @@ class MetricsCallback(BaseCallback):
         self.eval_interval = self.total_timesteps // self.CONFIG['eval_interval']
         self.train_csv_file_path = os.path.join(os.getcwd(),self.CONFIG["log_dir"],'train_results_summary.csv')
         self.eval_csv_file_path = os.path.join(os.getcwd(),self.CONFIG["log_dir"],'eval_results_summary.csv')
+        self.m_rch_count = 0
 
     def _on_training_start(self):
         self.num_envs = self.model.env.num_envs
@@ -44,6 +45,7 @@ class MetricsCallback(BaseCallback):
         dones = self.locals['dones']
         infos = self.locals['infos']
         step = self.model.num_timesteps
+        callback_return = True
 
         for i, info in enumerate(infos):
             if info["episode_ended"]:
@@ -95,10 +97,14 @@ class MetricsCallback(BaseCallback):
         
         with prefixed_wandb_log("Eval"):
             if (step) % self.eval_interval == 0 or step == self.total_timesteps - 1:
-                evaluate(self.model,self.CONFIG,step,self.eval_csv_file_path)
+                m_count = evaluate(self.model,self.CONFIG,step,self.eval_csv_file_path)
                 self.model.save(os.path.join(os.getcwd(),self.CONFIG["log_dir"],f"final_model_{step}.zip"))
+                self.m_rch_count += m_count
+
+        if self.m_rch_count == 10:
+            callback_return = False
         
-        return True
+        return callback_return
 
     def _on_training_end(self):
         if os.path.exists(self.train_csv_file_path):

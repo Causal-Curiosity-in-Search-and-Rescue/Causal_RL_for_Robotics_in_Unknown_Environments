@@ -2,9 +2,7 @@
     "environment":{
         "name":"SearchAndRescueEnv-v0",
         "num_parallel_env":10,
-        "num_movable_objects":6,
-        "num_immovable_objects":16,
-        "num_start_pos":6,
+        "num_start_pos":8,
         "grid_size":20,
         "randomness":true,
         "max_steps":800,
@@ -14,7 +12,28 @@
         "goal_factor":2,
         "exploration_reward":0,
         "distance_reward":false,
-        "imm_penalty":0
+        "random_room_pos": true,
+        "imm_penalty":0,
+        "num_00":6,
+        "num_01":6,
+        "num_10":6,
+        "num_11":0,
+        "object_code":8,
+        "env_codes":{
+            "mkb":{"w":0,"u":1,"c":1,"00":2,"01":3,"10":4,"11":5,"r":0, "s":6,"o":7},
+            "ukb":{"w":0,"u":1,"c":1,"00":5,"01":5,"10":5,"11":5,"r":0, "s":6,"o":7},
+            "movable":[5],
+            "immovable":[2,3,4],
+            "room_array":[
+                ["u", "u", "u", "u", "u", "u","u"],
+                ["u", "r", "10", "11", "10", "r","u"],
+                ["u", "10", "u", "o", "u", "10","u"],
+                ["u", "11", "u", "u", "u", "11","u"],
+                ["u", "10", "u", "u", "u", "10","u"],
+                ["u", "r", "10", "11", "10", "r","u"],
+                ["u", "u", "u", "u", "u", "u","u"]
+            ]
+        } 
     },
     "algorithm":"A2C",
     "policy": "MlpPolicy",
@@ -23,7 +42,7 @@
     "log_interval":400,
     "eval_episodes":10,
     "wandb":{
-        "project":"[2D] sam_3",
+        "project":"[2D] Third Eye",
         "entity":"SR_GDP"
     },
     "A2C_hyperparameters": {
@@ -38,12 +57,12 @@
             }
         },
 
-    "log_dir":"testing",
+    "log_dir":"third_eye",
     "inference":{
         "num_episodes":100,
         "interval":10,
         "map_path":"/repos/Search_And_Rescue_2D/causal_experiment_logs/maze_plan.pkl",
-        "model_path":"/repos/Search_And_Rescue_2D/causal_experiment_logs/causal_model_8.zip"
+        "model_path":"/repos/Search_And_Rescue_2D/causal_experiment_logs/causal_model_9.zip"
     },
     "mode":"train"
 }

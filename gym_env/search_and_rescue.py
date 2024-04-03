@@ -33,12 +33,16 @@ class SearchAndRescueEnv(gym.Env):
         self.max_steps = ENV_CONFIG['max_steps']
         self.log_dir = check_and_create_directory( CONFIG['log_dir'])
         self.grid_size = ( ENV_CONFIG['grid_size'], ENV_CONFIG['grid_size'])
-        self.num_m =  ENV_CONFIG['num_movable_objects']
-        self.num_i =  ENV_CONFIG['num_immovable_objects']
+        #self.num_m =  ENV_CONFIG['num_movable_objects']
+        #self.num_i =  ENV_CONFIG['num_immovable_objects']
         self.num_s =  ENV_CONFIG['num_start_pos']
+        self.num_00 = ENV_CONFIG['num_00']
+        self.num_01 = ENV_CONFIG['num_01']
+        self.num_10 = ENV_CONFIG['num_10']
+        self.num_11 = ENV_CONFIG['num_11']
         self.env_config = ENV_CONFIG
         if CONFIG['mode'] == 'train':
-            self.MAP_PLAN,self.M_KB,self.U_KB = generate_maze_with_objects(self.grid_size[0],self.grid_size[1],self.num_m,self.num_i,self.num_s)
+            self.MAP_PLAN,self.M_KB,self.U_KB = generate_maze_with_objects(self.grid_size[0],self.grid_size[1],self.num_00,self.num_01,self.num_10,self.num_11,self.num_s,CONFIG)
             if  ENV_CONFIG['save_map']:
                 with open(os.path.join(CONFIG['log_dir'],'maze_plan.pkl'),'wb') as file:
                     pickle.dump(self.MAP_PLAN,file)
@@ -47,15 +51,17 @@ class SearchAndRescueEnv(gym.Env):
             self.MAP_PLAN,self.M_KB,self.U_KB = load_saved_map(CONFIG["inference"]["map_path"])
             
         self.episode_count = 0
-        self.num_objects = self.num_m + self.num_i
+        self.num_objects = self.num_00 + self.num_01 + self.num_10 + self.num_11
         # Code assignments
-        self.robot_code = 5
-        self.wall_code = 0
-        self.movable_code = 2
-        self.non_movable_code = 3
-        self.goal_code = 6
-        self.room_code = 4
-        self.free_space = 1
+        self.env_codes = CONFIG["environment"]["env_codes"]
+        
+        # self.robot_code = self.env_codes["s"]
+        # self.wall_code = self.env_codes["w"]
+        # self.movable_code = self.env_codes["00"]
+        # self.non_movable_code = 3
+        # self.goal_code = 6
+        # self.room_code = 4
+        # self.free_space = 1
         self.colors = {1: 'white', 5: 'orange', 0: 'grey', 2: 'blue', 3: 'red', 6: 'green',4:'grey'}
         
         self.action_space = spaces.Discrete(4)  # 0: Up, 1: Down, 2: Left, 3: Right 
@@ -68,8 +74,8 @@ class SearchAndRescueEnv(gym.Env):
         self.setup_environment()
     
     def get_robot_position(self)->np.ndarray:
-        return np.argwhere(self.state == self.robot_code)[0]
-    
+        return np.argwhere(self.state == self.env_codes['mkb']['s'])[0]
+        
     def get_goal_position(self)->np.ndarray:
         return np.argwhere(self.state==self.goal_code)[0]
 
@@ -81,8 +87,11 @@ class SearchAndRescueEnv(gym.Env):
 
     def reset(self):
         self.start_timer = time.time()
+        CONFIG = read_config()
         if self.use_random:
-            self.MAP_PLAN,self.M_KB,self.U_KB = generate_maze_with_objects(self.grid_size[0],self.grid_size[1],self.num_m,self.num_i,self.num_s)
+            self.MAP_PLAN,self.M_KB,self.U_KB = generate_maze_with_objects(self.grid_size[0],self.grid_size[1],self.num_00,self.num_01,self.num_10,self.num_11,self.num_s,CONFIG)
+
+            #self.MAP_PLAN,self.M_KB,self.U_KB = generate_maze_with_objects(self.grid_size[0],self.grid_size[1],self.env_codes['w'],self.num_i,self.num_s)
             if  self.env_config['save_map']:
                 map_log_dir = check_and_create_directory(os.path.join(self.log_dir,"maps",str(self.episode_count)))
                 with open(os.path.join(map_log_dir,'maze_plan.pkl'),'wb') as file:
@@ -90,6 +99,7 @@ class SearchAndRescueEnv(gym.Env):
                 visualisemaze(self.MAP_PLAN,map_log_dir)
         else:
             self.state = np.copy(self.M_KB)
+
         self.cumulative_reward = 0
         self.current_step = 0
         self.cumulative_immovable_interactions = 0
@@ -98,12 +108,18 @@ class SearchAndRescueEnv(gym.Env):
         """
         Return the MAP_STATE as the Observation space - this means we are saying the causal movability is determined wth texture and the robot knows about it
         """
-        self.digital_map = np.copy(self.M_KB)
         self.state = np.ones(self.grid_size,dtype=np.int32)
-        robot_pos = np.argwhere(self.M_KB == self.robot_code)[0]
-        goal_pos = np.argwhere(self.M_KB == self.goal_code)[0]
-        self.state[tuple(robot_pos)] = self.robot_code
-        self.state[tuple(goal_pos)] = self.goal_code
+        random_choice = np.argwhere(self.M_KB == self.env_codes['mkb']['s'])[np.random.randint(0,np.argwhere(self.M_KB==self.env_codes['mkb']['s']).shape[0])]
+        for idx, other_rob_pos in enumerate(np.argwhere(self.M_KB == self.env_codes['mkb']['s'] )):
+            if tuple(other_rob_pos) != tuple(random_choice):
+                self.M_KB[tuple(other_rob_pos)] = self.env_codes['mkb']['c']
+        self.digital_map = np.copy(self.M_KB)
+
+
+        robot_pos = random_choice
+        goal_pos = np.argwhere(self.M_KB == self.env_codes['mkb']['o'])[0]
+        self.state[tuple(robot_pos)] = self.env_codes['mkb']['s']
+        self.state[tuple(goal_pos)] = self.env_codes['mkb']['o']
        
         self.setup_environment()
         self.robot_pos = self.get_robot_position()
@@ -128,11 +144,11 @@ class SearchAndRescueEnv(gym.Env):
         return robot_pos
 
     def update_robot_position_in_state(self,old_pos,next_pos):
-        self.state[tuple(old_pos)] = self.free_space
-        self.state[tuple(next_pos)] = self.robot_code
+        self.state[tuple(old_pos)] = self.env_codes['mkb']['c']
+        self.state[tuple(next_pos)] = self.env_codes['mkb']['s']
         
-        self.digital_map[tuple(old_pos)] = self.free_space
-        self.digital_map[tuple(next_pos)] = self.robot_code
+        self.digital_map[tuple(old_pos)] = self.env_codes['mkb']['c']
+        self.digital_map[tuple(next_pos)] = self.env_codes['mkb']['s']
     
     def update_robot_movement_state(self, old_pos, new_pos, cell_code):
         # logging.info(f'-| Updating Robot Movement State : {old_pos} -> {new_pos} |  FOV CODE : {cell_code} |-')
@@ -140,11 +156,13 @@ class SearchAndRescueEnv(gym.Env):
         if tuple(old_pos) != tuple(new_pos):
             self.robot_movement_state[tuple(new_pos)] += 1
         
-        if cell_code in [self.wall_code,self.room_code, self.non_movable_code]:
+        if cell_code in [self.env_codes['mkb']['w'],self.env_codes['mkb']['r']] + self.env_codes['immovable']:
             self.robot_movement_state[tuple(new_pos)] *= 2  # Scale higher visit for objects
     
     def translate_action(self,action,current_pos,next_pos,next_cell_code):
-        if next_cell_code not in [self.wall_code, self.non_movable_code, self.room_code,self.movable_code,self.goal_code]: # If Free Space
+        cmb_ls = self.env_codes['immovable'] + self.env_codes['movable']
+        if next_cell_code not in [self.env_codes['mkb']['w'], self.env_codes['mkb']['r'],self.env_codes['mkb']['o']] + cmb_ls: # If Free Space
+
             self.update_robot_position_in_state(current_pos,next_pos)
             self.update_robot_movement_state(current_pos,next_pos,next_cell_code)
             action_info = {
@@ -153,11 +171,11 @@ class SearchAndRescueEnv(gym.Env):
                 "has_reached_goal":False,
                 "is_freespace":True
             }
-        elif next_cell_code in [self.wall_code,self.room_code, self.non_movable_code]:
+        elif next_cell_code in [self.env_codes['mkb']['w'],self.env_codes['mkb']['r']] + self.env_codes['immovable']:
             self.update_robot_position_in_state(current_pos,current_pos)
             self.update_robot_movement_state(current_pos,current_pos,next_cell_code)
             self.state[tuple(next_pos)] = next_cell_code # updates observation
-            if next_cell_code == self.non_movable_code:
+            if next_cell_code in self.env_codes['immovable']:
                 self.cumulative_immovable_interactions += 1
             action_info = {
                 "object_type":next_cell_code,
@@ -165,15 +183,16 @@ class SearchAndRescueEnv(gym.Env):
                 "has_reached_goal":False,
                 "is_freespace":False
             }
-        elif next_cell_code == self.movable_code: # movable object
+        elif next_cell_code in self.env_codes['movable']: # movable object
             self.cumulative_movable_interactions += 1
             new_obj_pos = self.get_fov_cell(next_pos, action)
             new_obj_pos_fov_cell_code = self.get_fov_info(new_obj_pos)
-            if new_obj_pos_fov_cell_code not in [self.non_movable_code,self.wall_code,self.room_code,self.movable_code,self.goal_code]:
+            cmb_ls = self.env_codes['immovable'] + self.env_codes['movable']
+            if new_obj_pos_fov_cell_code not in [self.env_codes['mkb']['w'],self.env_codes['mkb']['r'],self.env_codes['mkb']['o']] + cmb_ls:
                 self.update_robot_position_in_state(current_pos,next_pos)
                 self.update_robot_movement_state(current_pos,next_pos,next_cell_code)
-                self.state[tuple(new_obj_pos)] = self.movable_code
-                self.digital_map[tuple(new_obj_pos)] = self.movable_code
+                self.state[tuple(new_obj_pos)] = next_cell_code
+                self.digital_map[tuple(new_obj_pos)] = next_cell_code
                 action_info = {
                     "object_type":next_cell_code,
                     "movablity":True,
@@ -182,7 +201,7 @@ class SearchAndRescueEnv(gym.Env):
                 }
             else:
                 self.update_robot_position_in_state(current_pos,current_pos)
-                self.update_robot_movement_state(current_pos,current_pos,self.non_movable_code) # manually updating visit for this state to be higher so it doesnt visit it
+                self.update_robot_movement_state(current_pos,current_pos,next_cell_code) # manually updating visit for this state to be higher so it doesnt visit it
                 self.state[tuple(next_pos)] = next_cell_code # updates observation
                 self.state[tuple(new_obj_pos)] = new_obj_pos_fov_cell_code
                 action_info = {
@@ -222,18 +241,18 @@ class SearchAndRescueEnv(gym.Env):
         done = False
         goal_reached = False
         
-        if next_cell_code in [self.wall_code,self.room_code]: # penalize for collision with wall and room
+        if next_cell_code in [self.env_codes['mkb']['w'],self.env_codes['mkb']['r']]: # penalize for collision with wall and room
             reward -= self.env_config['wall_penalty']
             # done = True
         
         if self.robot_movement_state[tuple(next_pos)] == 1: # reward for new visits - promotes exploration
             reward += self.env_config['exploration_reward']
 
-        if next_cell_code in [self.non_movable_code]: # penalize for collision with immovable objects
+        if next_cell_code in self.env_codes['immovable']: # penalize for collision with immovable objects
             reward -= self.env_config['imm_penalty']
             # done = True
             
-        if next_cell_code == self.goal_code:  # reward for reaching goal
+        if next_cell_code == self.env_codes['mkb']['o']:  # reward for reaching goal
             base_reward = self.env_config['goal_base_reward']
             remaining_steps_ratio = (self.max_steps - self.current_step) / self.max_steps
             additional_reward = remaining_steps_ratio *  self.env_config['goal_base_reward']

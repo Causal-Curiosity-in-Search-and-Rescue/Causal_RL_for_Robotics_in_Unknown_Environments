@@ -55,7 +55,7 @@ def train_and_evaluate(CONFIG):
     callbacks = MetricsCallback()
     # Training Mode
     model.learn(total_timesteps=total_timesteps,reset_num_timesteps=False,callback=callbacks)
-
+    wandb.finish()
 
 def main(CONFIG):
     train_and_evaluate(CONFIG)

@@ -2,7 +2,7 @@ from utils.env_helper import make_env
 from stable_baselines3.common.vec_env import DummyVecEnv,SubprocVecEnv
 import numpy as np 
 import time 
-from utils.log_helper import log_aggregate_stats,log_to_csv,log_results_table_to_wandb
+from utils.log_helper import log_aggregate_stats,log_to_csv,log_results_table_to_wandb,calculate_aggregate_stats
 import os
 
 def evaluate(model,CONFIG,step,eval_csv_file_path):
@@ -82,3 +82,10 @@ def evaluate(model,CONFIG,step,eval_csv_file_path):
     log_aggregate_stats(collected_dictionary,key="goal_reward",log_string="goal_reward",step=step)
     log_aggregate_stats(collected_dictionary,key="goal_reached",log_string="goal_reached",step=step)
     log_aggregate_stats(collected_dictionary,key="time_taken_per_episode",log_string="time_taken_per_episode",step=step)
+
+    mean_goal_rchd,std_reached = calculate_aggregate_stats(collected_dictionary["goal_reached"])
+
+    if mean_goal_rchd == 1 and std_reached == 0:
+        return 1
+    else:
+        return 0
