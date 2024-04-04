@@ -15,3 +15,10 @@ def make_env(env_id,render_video=False):
             env = gym.wrappers.RecordEpisodeStatistics(env)  # record stats such as returns
         return env
     return _init
+
+def make_env_for_inference(env_id,render_video=False):
+    env = gym.make(env_id, render_mode="rgb_array")
+    if render_video:
+        env = gym.wrappers.RecordVideo(env, f"videos",episode_trigger=always_record)  # record videos
+        env = gym.wrappers.RecordEpisodeStatistics(env)  # record stats such as returns
+    return env

@@ -1,9 +1,10 @@
-from utils.env_helper import make_env
+from utils.env_helper import make_env,make_env_for_inference
 from stable_baselines3.common.vec_env import DummyVecEnv,SubprocVecEnv
 import numpy as np 
 import time 
 from utils.log_helper import log_aggregate_stats,log_to_csv,log_results_table_to_wandb,calculate_aggregate_stats
 import os
+import pdb
 
 def evaluate(model,CONFIG,step,eval_csv_file_path):
     n_envs = CONFIG["environment"]["num_parallel_env"]
@@ -87,12 +88,15 @@ def evaluate(model,CONFIG,step,eval_csv_file_path):
 
     if mean_goal_rchd == 1 and std_reached == 0:
         return 1
+    elif mean_goal_rchd == 0 and std_reached == 0:
+        return 1
     else:
         return 0
 
 
 def inference(model,CONFIG):
-    env = make_env(CONFIG["environment"]["name"],render_video=True)
+    env = make_env_for_inference(CONFIG["environment"]["name"],render_video=True)
+    pdb.set_trace()
     env = DummyVecEnv([lambda: env])
     n_envs = 1
     n_eval_episodes = CONFIG["eval_episodes"]
