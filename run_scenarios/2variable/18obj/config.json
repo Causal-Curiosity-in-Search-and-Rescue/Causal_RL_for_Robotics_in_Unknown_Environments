@@ -14,7 +14,7 @@
         "distance_reward":false,
         "random_room_pos": false,
         "imm_penalty":0,
-        "num_00":12,
+        "num_00":18,
         "num_01":0,
         "num_10":0,
         "num_11":0,
@@ -57,7 +57,7 @@
             }
         },
 
-    "log_dir":"final_2d_2_variable_12obj",
+    "log_dir":"final_2d_2_variable_18obj",
     "inference":{
         "num_episodes":100,
         "interval":10,

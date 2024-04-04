@@ -88,8 +88,8 @@ def evaluate(model,CONFIG,step,eval_csv_file_path):
 
     if mean_goal_rchd == 1 and std_reached == 0:
         return 1
-    elif mean_goal_rchd == 0 and std_reached == 0:
-        return 1
+    # elif mean_goal_rchd == 0 and std_reached == 0:
+    #     return 1
     else:
         return 0
 
