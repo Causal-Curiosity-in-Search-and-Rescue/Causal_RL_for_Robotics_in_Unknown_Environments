@@ -5,11 +5,13 @@ from stable_baselines3 import PPO,A2C
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.evaluation import evaluate_policy
+import time
 import wandb
 import numpy as np 
 import gym 
 import os 
 import logging
+from utils.log_helper import calculate_aggregate_stats
 # Configure logging
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -53,21 +55,56 @@ model = A2C.load(CONFIG["inference"]["model_path"])
 
 env = DummyVecEnv([make_env])
 obs = env.reset()
+n_envs = 1
+n_eval_episodes = CONFIG["eval_episodes"]
 
-total_episodes = CONFIG["inference"]["num_episodes"]  
 episode_rewards = []
+episode_counts = np.zeros(n_envs, dtype="int")
+episode_count_targets = np.array([(n_eval_episodes + i) // n_envs for i in range(n_envs)], dtype="int")
+    
+observations = env.reset()
+states = None
+episode_starts = np.ones((env.num_envs,), dtype=bool)
+start_times = np.array([time.time()] * n_envs)  # Start times for each env
 
-for episode in range(total_episodes):
-    done = False
-    sum_rewards = 0  
+collected_dictionary = {
+    "cumulative_reward":[],
+    "cumulative_interactions":[],
+    "movable_interactions":[],
+    "non_movable_interactions":[],
+    "goal_reward":[],
+    "goal_reached":[],
+    "time_taken_per_episode":[]
+}
 
-    while not done:
-        action, _states = model.predict(obs, deterministic=True)  # deterministic=True for reproducible actions
-        obs, reward, done, info = env.step(action)
-        sum_rewards += reward
-
-    episode_rewards.append(sum_rewards)  
-    obs = env.reset()  
-
-average_reward = np.mean(episode_rewards)
-logging.info(f"Completed {total_episodes} episodes with an average reward of {average_reward}")
+while (episode_counts < episode_count_targets).any():
+    actions, states = model.predict(
+        observations,  
+        state=states,
+        episode_start=episode_starts,
+        deterministic=False,
+    )
+    new_observations, rewards, dones, infos = env.step(actions)
+    for i in range(n_envs):
+        if episode_counts[i] < episode_count_targets[i]:
+            reward = rewards[i]
+            done = dones[i]
+            info = infos[i]
+            episode_starts[i] = done
+            if done:
+                episode_counts[i] += 1
+                time_taken_for_episode = time.time() - start_times[i]
+                start_times[i] = time.time()  # Reset start time for the next episode
+                
+                collected_dictionary["cumulative_reward"].append(info["cumulative_reward"])
+                collected_dictionary["cumulative_interactions"].append(info["cumulative_interactions"])
+                collected_dictionary["movable_interactions"].append(info["movable_interactions"])
+                collected_dictionary["non_movable_interactions"].append(info["non_movable_interactions"])
+                collected_dictionary["goal_reward"].append(info["goal_reward"])
+                collected_dictionary["goal_reached"].append(info["goal_reached"])
+                collected_dictionary["time_taken_per_episode"].append(time_taken_for_episode)
+                
+    observations = new_observations
+    
+mean_goal_reqched , std_goal_reached  = calculate_aggregate_stats(collected_dictionary["goal_reached"])
+logging.info(f"Mean goal Reached : {mean_goal_reqched} | Std. Goal reached : {std_goal_reached}")
