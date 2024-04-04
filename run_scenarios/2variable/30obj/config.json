@@ -1,0 +1,69 @@
+{
+    "environment":{
+        "name":"SearchAndRescueEnv-v0",
+        "num_parallel_env":10,
+        "num_start_pos":8,
+        "grid_size":20,
+        "randomness":true,
+        "max_steps":800,
+        "save_map":false,
+        "wall_penalty":0,
+        "goal_base_reward":10,
+        "goal_factor":2,
+        "exploration_reward":0,
+        "distance_reward":false,
+        "random_room_pos": false,
+        "imm_penalty":0,
+        "num_00":30,
+        "num_01":0,
+        "num_10":0,
+        "num_11":0,
+        "object_code":8,
+        "env_codes":{
+            "mkb":{"w":0,"u":1,"c":1,"00":2,"01":3,"10":4,"11":5,"r":0, "s":6,"o":7},
+            "ukb":{"w":0,"u":1,"c":1,"00":5,"01":5,"10":5,"11":5,"r":0, "s":6,"o":7},
+            "movable":[3],
+            "immovable":[2],
+            "room_array":[
+                ["u", "u", "u", "u", "u", "u","u"],
+                ["u", "r", "00", "01", "00", "r","u"],
+                ["u", "00", "u", "o", "u", "00","u"],
+                ["u", "01", "u", "u", "u", "01","u"],
+                ["u", "00", "u", "u", "u", "00","u"],
+                ["u", "r", "00", "01", "00", "r","u"],
+                ["u", "u", "u", "u", "u", "u","u"]
+            ]
+        } 
+    },
+    "algorithm":"A2C",
+    "policy": "MlpPolicy",
+    "total_timesteps": 8000000,
+    "eval_interval":800,
+    "log_interval":1600,
+    "eval_episodes":10,
+    "wandb":{
+        "project":"[FINAL] [2D] Causal vs NonCausal 2 Variable - Shape introduced and Connected to Movability",
+        "entity":"juliangeralddcruz",
+        "name":"30obj"
+    },
+    "A2C_hyperparameters": {
+        "gamma":0.995,
+        "n_steps": 100,
+        "ent_coef":0.02,
+        "vf_coef":0.5,
+        "max_grad_norm":1,
+        "learning_rate": 0.0003,
+        "optimizer_parameters":{
+            "eps":1e-7
+            }
+        },
+
+    "log_dir":"final_2d_2_variable_30obj",
+    "inference":{
+        "num_episodes":100,
+        "interval":10,
+        "map_path":"/repos/Search_And_Rescue_2D/causal_experiment_logs/maze_plan.pkl",
+        "model_path":"/repos/Search_And_Rescue_2D/causal_experiment_logs/causal_model_9.zip"
+    },
+    "mode":"train"
+}
