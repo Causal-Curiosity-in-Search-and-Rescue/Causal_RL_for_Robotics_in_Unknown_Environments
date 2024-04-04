@@ -42,7 +42,7 @@
     "log_interval":400,
     "eval_episodes":10,
     "wandb":{
-        "project":"[2D] Third Eye",
+        "project":"[2D] Causal vs NonCausal ThirdEye - Optuna",
         "entity":"SR_GDP"
     },
     "A2C_hyperparameters": {

@@ -146,11 +146,11 @@ def place_array_random(maze,CONFIG):
     array_to_place = CONFIG["environment"]["env_codes"]["room_array"]
     room_arr_np = np.array(array_to_place)
     room_shape = room_arr_np.shape[0]
-    start_row = np.random.randint(2,CONFIG['environment']['grid_size'] - room_shape+2)
-    start_col = np.random.randint(2,CONFIG['environment']['grid_size'] - room_shape+2)
+    start_row = np.random.randint(1,CONFIG['environment']['grid_size'] - room_shape)
+    start_col = np.random.randint(1,CONFIG['environment']['grid_size'] - room_shape)
 
-    for i in range(room_shape - 2):
-        for j in range(room_shape -2):
+    for i in range(room_shape):
+        for j in range(room_shape):
             maze[start_row + i][start_col + j] = array_to_place[i][j]
 
     return maze
