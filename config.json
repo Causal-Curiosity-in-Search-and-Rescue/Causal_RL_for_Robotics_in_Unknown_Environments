@@ -26,18 +26,18 @@
             "immovable":[2,3,4],
             "room_array":[
                 ["u", "u", "u", "u", "u", "u","u"],
-                ["u", "r", "10", "11", "10", "r","u"],
-                ["u", "10", "u", "o", "u", "10","u"],
+                ["u", "r", "r", "11", "r", "r","u"],
+                ["u", "r", "u", "o", "u", "r","u"],
                 ["u", "11", "u", "u", "u", "11","u"],
-                ["u", "10", "u", "u", "u", "10","u"],
-                ["u", "r", "10", "11", "10", "r","u"],
+                ["u", "r", "u", "u", "u", "r","u"],
+                ["u", "r", "r", "11", "r", "r","u"],
                 ["u", "u", "u", "u", "u", "u","u"]
             ]
         } 
     },
     "algorithm":"A2C",
     "policy": "MlpPolicy",
-    "total_timesteps": 8000000,
+    "total_timesteps": 100000000,
     "eval_interval":200,
     "log_interval":400,
     "eval_episodes":10,
