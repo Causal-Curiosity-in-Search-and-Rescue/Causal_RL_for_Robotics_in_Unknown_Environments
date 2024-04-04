@@ -72,6 +72,7 @@ if __name__ == '__main__':
         config=CONFIG,
         entity=CONFIG['wandb']['entity'],
         project=CONFIG['wandb']['project'],
+        name=CONFIG['wandb']['name'],
         monitor_gym=True,       # automatically upload gym environements' videos
         save_code=True,
     )

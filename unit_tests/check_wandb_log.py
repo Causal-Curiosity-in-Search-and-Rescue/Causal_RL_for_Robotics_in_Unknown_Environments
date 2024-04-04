@@ -31,6 +31,7 @@ config = {
 wandb.init(
     config=config,
     project="Testing",
+    name="test_run",
     monitor_gym=True,       # automatically upload gym environements' videos
     save_code=True,
 )

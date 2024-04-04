@@ -43,7 +43,8 @@
     "eval_episodes":10,
     "wandb":{
         "project":"[FINAL] [2D] Causal vs NonCausal 2 Variable - Shape introduced and Connected to Movability",
-        "entity":"juliangeralddcruz"
+        "entity":"juliangeralddcruz",
+        "name":"12obj"
     },
     "A2C_hyperparameters": {
         "gamma":0.995,

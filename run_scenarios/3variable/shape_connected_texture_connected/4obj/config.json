@@ -43,7 +43,8 @@
     "eval_episodes":10,
     "wandb":{
         "project":"[FINAL] [2D] Causal vs NonCausal 3 Variable - Shape connected and Texture connected",
-        "entity":"juliangeralddcruz"
+        "entity":"juliangeralddcruz",
+        "name":"4obj"
     },
     "A2C_hyperparameters": {
         "gamma":0.995,
