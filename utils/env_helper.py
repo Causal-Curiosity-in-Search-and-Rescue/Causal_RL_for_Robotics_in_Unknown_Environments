@@ -7,11 +7,18 @@ import numpy as np
 def always_record(episode_id):
     return True  # This will ensure every episode is recorded
 
-def make_env(env_id):
+def make_env(env_id,render_video=False):
     def _init():
         env = gym.make(env_id, render_mode="rgb_array")
-        #video_id = np.random.randint(0,100)
-        #env = gym.wrappers.RecordVideo(env, f"videos",episode_trigger=always_record)  # record videos
-        # env = gym.wrappers.RecordEpisodeStatistics(env)  # record stats such as returns
+        if render_video:
+            env = gym.wrappers.RecordVideo(env, f"videos",episode_trigger=always_record)  # record videos
+            env = gym.wrappers.RecordEpisodeStatistics(env)  # record stats such as returns
         return env
     return _init
+
+def make_env_for_inference(env_id,render_video=False):
+    env = gym.make(env_id, render_mode="rgb_array")
+    if render_video:
+        env = gym.wrappers.RecordVideo(env, f"videos",episode_trigger=always_record)  # record videos
+        env = gym.wrappers.RecordEpisodeStatistics(env)  # record stats such as returns
+    return env

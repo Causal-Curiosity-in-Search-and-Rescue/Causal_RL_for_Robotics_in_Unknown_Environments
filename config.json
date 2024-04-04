@@ -12,11 +12,11 @@
         "goal_factor":2,
         "exploration_reward":0,
         "distance_reward":false,
-        "random_room_pos": true,
+        "random_room_pos": false,
         "imm_penalty":0,
-        "num_00":6,
-        "num_01":6,
-        "num_10":6,
+        "num_00":2,
+        "num_01":2,
+        "num_10":2,
         "num_11":0,
         "object_code":8,
         "env_codes":{
@@ -37,13 +37,13 @@
     },
     "algorithm":"A2C",
     "policy": "MlpPolicy",
-    "total_timesteps": 100000000,
-    "eval_interval":200,
-    "log_interval":400,
+    "total_timesteps": 2000000,
+    "eval_interval":800,
+    "log_interval":1600,
     "eval_episodes":10,
     "wandb":{
-        "project":"[2D] Third Eye",
-        "entity":"SR_GDP"
+        "project":"[2D] Causal ThirdEye - Optuna 2M",
+        "entity":"juliangeralddcruz"
     },
     "A2C_hyperparameters": {
         "gamma":0.995,
@@ -57,7 +57,7 @@
             }
         },
 
-    "log_dir":"third_eye",
+    "log_dir":"causal_third_eye",
     "inference":{
         "num_episodes":100,
         "interval":10,

@@ -10,30 +10,14 @@ import wandb
 import gym 
 #from callbacks.wandb_callback import WandBCallback
 import argparse
-from utils.helper import read_config
+from utils.helper import read_config,check_and_create_directory
+from utils.env_helper import make_env
 from callbacks.train_callback import MetricsCallback
-
-
-parser = argparse.ArgumentParser()
-parser.add_argument('config_path',type=str,help='Config Path',default='config.json')
-args = parser.parse_args()
-
-CONFIG = read_config(args.config_path)
-
-def make_env():
-    env = gym.make("CustomEnv-v0", render_mode="human")
-    #env = gym.wrappers.RecordVideo(env, f"videos")  # record videos
-    env = gym.wrappers.RecordEpisodeStatistics(env)  # record stats such as returns
-    return env
+from utils.evaluate import inference
+import os
 
 def objective(trial):
-    wandb.init(
-        config=CONFIG,
-        entity=CONFIG['wandb']['entity'],
-        project=CONFIG['wandb']['project'],
-        monitor_gym=True,       # automatically upload gym environements' videos
-        save_code=True,
-    )
+    log_dir = check_and_create_directory(os.path.join(os.getcwd(),CONFIG['log_dir']))
     # Hyperparameters to be tuned by Optuna
     learning_rate = trial.suggest_loguniform('learning_rate', 1e-5, 1e-1)
     gamma = trial.suggest_uniform('gamma', 0.8, 0.9999)
@@ -41,17 +25,31 @@ def objective(trial):
     ent_coef = trial.suggest_loguniform('ent_coef', 0.00001, 0.1)
     vf_coef = trial.suggest_uniform('vf_coef', 0.5, 1)
     max_grad_norm = trial.suggest_uniform('max_grad_norm', 0.5, 5)
+    optimizer_eps = 1e-7  
     
-    # Assuming CONFIG is globally accessible or passed as an argument to the objective function
-    #num_envs = 1
-    #env_id = CONFIG["environment"]["name"]
-    env = make_env()
-    env = DummyVecEnv([lambda: env])
+    CONFIG["A2C_hyperparameters"]["gamma"] = gamma
+    CONFIG["A2C_hyperparameters"]["n_steps"] = n_steps
+    CONFIG["A2C_hyperparameters"]["ent_coef"] = ent_coef
+    CONFIG["A2C_hyperparameters"]["vf_coef"] = vf_coef
+    CONFIG["A2C_hyperparameters"]["max_grad_norm"] = max_grad_norm
+    CONFIG["A2C_hyperparameters"]["learning_rate"] = learning_rate
+    CONFIG["A2C_hyperparameters"]["optimizer_parameters"]["eps"] = optimizer_eps
+    
+    wandb.init(
+        config=CONFIG,
+        entity=CONFIG['wandb']['entity'],
+        project=CONFIG['wandb']['project'],
+        monitor_gym=True,       
+        save_code=True,
+    )
+    
+    num_envs = CONFIG["environment"]["num_parallel_env"]
+    env_ids = [CONFIG["environment"]["name"]] * num_envs
+    envs = [make_env(env_id) for env_id in env_ids]
+    env = SubprocVecEnv(envs)
     
     env.reset()
 
-    optimizer_eps = 1e-5  # Example, adjust according to your needs
-    
     model = A2C(
         CONFIG['policy'], 
         env, 
@@ -65,20 +63,24 @@ def objective(trial):
         policy_kwargs={"optimizer_kwargs":{"eps":optimizer_eps}}
     )
 
-
+    model.set_env(env=env)
     callbacks = MetricsCallback()
     model.learn(total_timesteps=CONFIG['total_timesteps'], reset_num_timesteps=False, callback=callbacks)
-    
-    mean_goal_reached = callbacks.mean_goal_reached
-
+    mean_goal_reached,std_goal_reached = inference(model,CONFIG)
     return mean_goal_reached
 
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('config_path',type=str,help='Config Path',default='config.json')
+    args = parser.parse_args()
 
-study = optuna.create_study(direction='maximize')
-study.optimize(objective, n_trials=50)
+    CONFIG = read_config(args.config_path)
+    
+    study = optuna.create_study(direction='maximize')
+    study.optimize(objective, n_trials=50)
 
-best_params = study.best_params
-print('Best trial:', best_params)
+    best_params = study.best_params
+    print('Best trial:', best_params)
 
-wandb.log({"Best Parameters": best_params})
-wandb.finish()
+    wandb.log({"Best Parameters": best_params})
+    wandb.finish()
