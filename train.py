@@ -15,7 +15,7 @@ import pandas as pd
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-from utils.helper import read_config,check_and_create_directory
+from utils.helper import read_config,check_and_create_directory,modify_config
 from utils.log_helper import log_to_csv,log_results_table_to_wandb,log_aggregate_stats
 from utils.wandb_context import prefixed_wandb_log
 from callbacks.train_callback import MetricsCallback
@@ -63,9 +63,19 @@ def main(CONFIG):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('config_path',type=str,help='Config Path',default='config.json')
+    parser.add_argument('causal',type=bool,help="True for Causal ; False for Non Causal ",default=True)
     args = parser.parse_args()
-
     CONFIG = read_config(args.config_path)
+
+    if args.causal :
+        CONFIG['environment']['name'] = CONFIG["available_env_ids"]["causal"]
+        CONFIG["wandb"]["name"] = "causal_" + CONFIG["wandb"]["name"]
+        CONFIG = modify_config(CONFIG,args.config_path)
+    else:
+        CONFIG['environment']['name'] = CONFIG["available_env_ids"]["noncausal"]
+        CONFIG["wandb"]["name"] = "non_causal_" + CONFIG["wandb"]["name"]
+        CONFIG = modify_config(CONFIG,args.config_path)
+    
     log_dir = check_and_create_directory(os.path.join(os.getcwd(),CONFIG['log_dir']))
     
     wandb.init(
