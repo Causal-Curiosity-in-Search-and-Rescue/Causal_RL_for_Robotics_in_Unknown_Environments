@@ -19,7 +19,7 @@ python train.py config.json
 
 ## Prediction 
 
-- update the model_path in the config.json 
+- update the model_path in the config.json and select which environment to use 
 
 ```bash
 python predict.py config.json
