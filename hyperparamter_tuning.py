@@ -82,5 +82,5 @@ if __name__ == '__main__':
     best_params = study.best_params
     print('Best trial:', best_params)
 
-    wandb.log({"Best Parameters": best_params})
+    wandb.log({"Best Hyperparameters Parameters": best_params})
     wandb.finish()
