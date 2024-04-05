@@ -1,4 +1,8 @@
 {
+    "available_env_ids":{
+        "causal":"SearchAndRescueEnv-v0",
+        "noncausal":"SearchAndRescueNoCausalEnv-v0"
+    },
     "environment":{
         "name":"SearchAndRescueEnv-v0",
         "num_parallel_env":10,

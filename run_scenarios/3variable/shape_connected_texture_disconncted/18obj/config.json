@@ -18,9 +18,9 @@
         "distance_reward":false,
         "random_room_pos": false,
         "imm_penalty":0,
-        "num_00":6,
+        "num_00":18,
         "num_01":0,
-        "num_10":6,
+        "num_10":18,
         "num_11":0,
         "object_code":8,
         "env_codes":{
@@ -48,7 +48,7 @@
     "wandb":{
         "project":"[FINAL] [2D] Causal vs NonCausal 3 Variable - Shape conncted and Texture Disconnected",
         "entity":"juliangeralddcruz",
-        "name":"6obj"
+        "name":"18obj"
     },
     "A2C_hyperparameters": {
         "gamma":0.995,
@@ -62,7 +62,7 @@
             }
         },
 
-    "log_dir":"final_2d_3_variable_shape_connected_texture_6obj",
+    "log_dir":"final_2d_3_variable_shape_connected_texture_18obj",
     "inference":{
         "num_episodes":100,
         "interval":10,

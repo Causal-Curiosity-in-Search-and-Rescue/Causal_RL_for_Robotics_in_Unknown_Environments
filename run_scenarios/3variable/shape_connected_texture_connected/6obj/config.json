@@ -1,4 +1,8 @@
 {
+    "available_env_ids":{
+        "causal":"SearchAndRescueEnv-v0",
+        "noncausal":"SearchAndRescueNoCausalEnv-v0"
+    },
     "environment":{
         "name":"SearchAndRescueEnv-v0",
         "num_parallel_env":10,
@@ -22,8 +26,8 @@
         "env_codes":{
             "mkb":{"w":0,"u":1,"c":1,"00":2,"01":3,"10":4,"11":5,"r":0, "s":6,"o":7},
             "ukb":{"w":0,"u":1,"c":1,"00":5,"01":5,"10":5,"11":5,"r":0, "s":6,"o":7},
-            "movable":[3],
-            "immovable":[2],
+            "movable":[5],
+            "immovable":[2,3,4],
             "room_array":[
                 ["u", "u", "u", "u", "u", "u","u"],
                 ["u", "r", "01", "11", "00", "r","u"],

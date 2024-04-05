@@ -18,23 +18,23 @@
         "distance_reward":false,
         "random_room_pos": false,
         "imm_penalty":0,
-        "num_00":6,
-        "num_01":0,
-        "num_10":6,
+        "num_00":12,
+        "num_01":12,
+        "num_10":12,
         "num_11":0,
         "object_code":8,
         "env_codes":{
             "mkb":{"w":0,"u":1,"c":1,"00":2,"01":3,"10":4,"11":5,"r":0, "s":6,"o":7},
             "ukb":{"w":0,"u":1,"c":1,"00":5,"01":5,"10":5,"11":5,"r":0, "s":6,"o":7},
-            "movable":[5,3],
-            "immovable":[2,4],
+            "movable":[5],
+            "immovable":[2,3,4],
             "room_array":[
                 ["u", "u", "u", "u", "u", "u","u"],
-                ["u", "r", "00", "01", "10", "r","u"],
+                ["u", "r", "01", "11", "00", "r","u"],
                 ["u", "10", "u", "o", "u", "00","u"],
-                ["u", "01", "u", "u", "u", "11","u"],
+                ["u", "11", "u", "u", "u", "11","u"],
                 ["u", "00", "u", "u", "u", "10","u"],
-                ["u", "r", "10", "11", "00", "r","u"],
+                ["u", "r", "10", "11", "01", "r","u"],
                 ["u", "u", "u", "u", "u", "u","u"]
             ]
         } 
@@ -46,9 +46,9 @@
     "log_interval":1600,
     "eval_episodes":10,
     "wandb":{
-        "project":"[FINAL] [2D] Causal vs NonCausal 3 Variable - Shape conncted and Texture Disconnected",
+        "project":"[FINAL] [2D] Causal vs NonCausal 3 Variable - Shape connected and Texture connected",
         "entity":"juliangeralddcruz",
-        "name":"6obj"
+        "name":"12obj"
     },
     "A2C_hyperparameters": {
         "gamma":0.995,
@@ -62,7 +62,7 @@
             }
         },
 
-    "log_dir":"final_2d_3_variable_shape_connected_texture_6obj",
+    "log_dir":"final_2d_3_variable_shape_connected_texture_connected_12obj",
     "inference":{
         "num_episodes":100,
         "interval":10,
