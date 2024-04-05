@@ -96,8 +96,7 @@ def evaluate(model,CONFIG,step,eval_csv_file_path):
 
 def inference(model,CONFIG):
     env = make_env_for_inference(CONFIG["environment"]["name"],render_video=True)
-    pdb.set_trace()
-    env = DummyVecEnv([lambda: env])
+    env = DummyVecEnv([make_env])
     n_envs = 1
     n_eval_episodes = CONFIG["eval_episodes"]
     

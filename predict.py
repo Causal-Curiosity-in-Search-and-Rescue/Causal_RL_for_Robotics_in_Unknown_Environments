@@ -54,7 +54,6 @@ wandb.init(
 model = A2C.load(CONFIG["inference"]["model_path"])
 
 env = DummyVecEnv([make_env])
-obs = env.reset()
 n_envs = 1
 n_eval_episodes = CONFIG["eval_episodes"]
 

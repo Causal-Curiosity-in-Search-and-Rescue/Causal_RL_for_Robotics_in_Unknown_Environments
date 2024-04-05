@@ -63,7 +63,7 @@ class SearchAndRescueNoCausalEnv(gym.Env):
         # self.goal_code = 6
         # self.room_code = 4
         # self.free_space = 1
-        self.colors = {1: 'white', 6: 'orange', 0: 'grey', 2: 'blue', 3: 'red', 7: 'green',4:'pink',5:'purple'}
+        self.colors = {1: 'white', 6: 'orange', 0: 'grey', 2: 'blue', 3: 'red', 7: 'green',4:'pink',5:'purple',8:'red'}
         
         self.action_space = spaces.Discrete(4)  # 0: Up, 1: Down, 2: Left, 3: Right 
         self.observation_space = spaces.Box(low=0, high=6, shape=self.grid_size, dtype=np.int32)
