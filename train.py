@@ -63,7 +63,7 @@ def main(CONFIG):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('config_path',type=str,help='Config Path',default='config.json')
-    parser.add_argument('causal',type=bool,help="True for Causal ; False for Non Causal ",default=True)
+    parser.add_argument('-causal',action='store_true', help="Enable for Causal, disable for Non Causal", default=True)
     args = parser.parse_args()
     CONFIG = read_config(args.config_path)
 
