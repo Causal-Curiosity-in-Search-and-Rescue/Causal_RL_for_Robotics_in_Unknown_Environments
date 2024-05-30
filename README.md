@@ -7,6 +7,7 @@ The code contained in this repository is the original implementation of the arti
     conda env create -f environment.yaml
 
 ## Training 
+When training for comparison of Causal and Non-Causal models and training in parallel then a separate repo directory is required for each.
 
 ### Usage for Causal
 
