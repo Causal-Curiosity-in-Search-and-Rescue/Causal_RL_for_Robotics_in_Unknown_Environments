@@ -1,4 +1,4 @@
-# Search and Rescue 2D
+# Causal_RL_for_Robotics_in_Unknown_Environments
 ## About
 The code contained in this repository is the original implementation of the article: 
 "Causal Reinforcement Learning for Optimisation of Robot Dynamics in Unknown Environments"
